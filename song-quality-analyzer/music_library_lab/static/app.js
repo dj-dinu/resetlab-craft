@@ -26,7 +26,147 @@
 
   try {
     state.token = new URLSearchParams(location.hash.slice(1)).get("token") || sessionStorage.getItem("song-quality-local-token") || "";
-    if (state.…2043 tokens truncated…e-value").textContent = score === null ? "—" : score.toFixed(1);
+    if (state.token) sessionStorage.setItem("song-quality-local-token", state.token);
+    if (location.hash.includes("token=")) history.replaceState(null, "", location.pathname + location.search);
+  } catch (_) {
+    state.token = new URLSearchParams(location.hash.slice(1)).get("token") || state.token;
+  }
+
+  async function api(path, body) {
+    if (!state.token) throw new Error("Open the app using the local link printed by its launcher. That link includes access to this session.");
+    const response = await fetch(path, {
+      method: body === undefined ? "GET" : "POST",
+      headers: { "X-Local-Token": state.token, "Content-Type": "application/json", "Accept": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    let data;
+    try { data = await response.json(); }
+    catch (_) { throw new Error(response.ok ? "The local app returned an unreadable response." : "The local app could not complete this request (" + response.status + ")."); }
+    if (!response.ok) {
+      const error = new Error(typeof data.error === "string" ? data.error : data.error && data.error.message || data.message || "Request failed (" + response.status + ").");
+      error.status = response.status;
+      if (response.status === 403) invalidateSession();
+      throw error;
+    }
+    return data;
+  }
+
+  function invalidateSession() {
+    state.config = null;
+    state.reportJobId = null;
+    $("scanner-status").replaceChildren(element("span", "status-dot warning"), element("span", "", "Reopen local launch link"));
+  }
+
+  function alertBox(kind, title, messages) {
+    const box = element("div", "alert " + kind);
+    box.setAttribute("role", kind === "error" ? "alert" : "status");
+    box.append(element("strong", "", title));
+    const lines = asMessages(messages);
+    if (lines.length === 1) box.append(element("div", "", lines[0]));
+    else if (lines.length) {
+      const list = element("ul");
+      lines.forEach((line) => list.append(element("li", "", line)));
+      box.append(list);
+    }
+    return box;
+  }
+
+  function setAlert(kind, title, messages) {
+    $("alerts").replaceChildren(alertBox(kind, title, messages));
+  }
+
+  function setStep(step) {
+    const order = ["scan", "analyze", "results", "export"];
+    const current = order.indexOf(step);
+    document.querySelectorAll(".steps li").forEach((node) => {
+      const index = order.indexOf(node.dataset.step);
+      node.classList.toggle("current", index === current);
+      node.classList.toggle("complete", index < current);
+    });
+  }
+
+  function updateControls() {
+    const count = selectedTracks().length;
+    const bulk = bulkTracks();
+    const bulkSelected = bulk.length > 0 && count === bulk.length && bulk.every((track) => track.enabled !== false);
+    $("scan-button").disabled = state.busy || !state.config;
+    $("demo-button").disabled = state.busy || !state.config;
+    $("browse-button").disabled = state.busy || !state.config;
+    $("browse-file-button").disabled = state.busy || !state.config;
+    const next = nextBatchTracks();
+    $("next-batch-button").disabled = state.busy || !next.length || !state.config;
+    $("next-batch-button").textContent = next.length ? "Select next " + next.length + " unmeasured" : "All readable tracks attempted";
+    $("root-path").disabled = state.busy;
+    $("audit-button").disabled = state.busy || !count || count > trackLimit() || !state.config || state.config.scanner_available === false || $("root-path").value.trim() !== state.root;
+    $("select-all").disabled = state.busy || !bulk.length;
+    $("select-all").checked = bulkSelected;
+    $("select-all").indeterminate = count > 0 && !bulkSelected;
+    $("select-all").title = "Select the first " + trackLimit() + " tracks with readable audio metadata";
+    $("selection-summary").textContent = count === state.tracks.length ? count + " track" + (count === 1 ? "" : "s") + " selected" : bulkSelected ? "First " + count + " valid tracks selected" : count + " of " + state.tracks.length + " tracks selected";
+    $("export-button").disabled = state.busy || state.exporting || !state.reportJobId;
+    document.querySelectorAll(".track-select").forEach((input) => { input.disabled = state.busy; });
+    $("cancel-button").disabled = !state.job || state.job.cancelling;
+    $("rail-status").textContent = state.job ? state.job.kind === "scan" ? "Reading music" : "Analyzing tracks" : count ? count + " selected" : "Ready to start";
+  }
+
+  function coverageValue(record, key) {
+    if (!record || record[key] === null || record[key] === undefined || record[key] === "") return null;
+    const value = Number(record[key]);
+    return Number.isFinite(value) ? Math.max(0, Math.min(100, value * 100)) : null;
+  }
+
+  function coverageRow(label, value, showThreshold) {
+    const row = element("div", "coverage-item");
+    row.append(element("span", "", label));
+    const bar = element("div", "coverage-bar" + (showThreshold ? " threshold" : ""));
+    bar.setAttribute("role", "img");
+    bar.setAttribute("aria-label", label + " coverage " + (value === null ? "unavailable" : formatCoverage(value)) + (showThreshold ? "; HQ threshold 30 percent" : ""));
+    const fill = element("span", "coverage-fill");
+    fill.style.width = (value === null ? 0 : value) + "%";
+    bar.append(fill);
+    const number = element("span", "coverage-value", formatCoverage(value));
+    if (value !== null) number.title = value.toPrecision(12) + "% of the full decoded duration";
+    row.append(bar, number);
+    return row;
+  }
+
+  function formatCoverage(value) {
+    if (value === null || !Number.isFinite(value)) return "—";
+    const rounded = value.toFixed(Math.abs(value - 30) < .1 ? 3 : 1);
+    if (value < 30 && Number(rounded) >= 30) return "<30%";
+    if (value > 0 && Number(rounded) === 0) return "<0.1%";
+    return rounded + "%";
+  }
+
+  function technicalMetadata(track, record) {
+    const data = record || {};
+    const labels = [];
+    const container = string(data.container || track.container).toUpperCase();
+    const codec = string(data.codec || track.codec).toUpperCase();
+    if (container) labels.push(container);
+    if (codec && codec !== container) labels.push(codec);
+    const rate = Number(data.sample_rate_hz || data.sample_rate || track.sample_rate);
+    if (Number.isFinite(rate) && rate > 0) labels.push((rate / 1000).toFixed(rate % 1000 ? 1 : 0) + " kHz");
+    const channels = Number(data.channels || track.channels);
+    if (channels > 0) labels.push(channels === 1 ? "Mono" : channels === 2 ? "Stereo" : channels + " channels");
+    return labels;
+  }
+
+  function renderResultSummary() {
+    const records = [...state.summaries.values()];
+    const measured = records.filter((record) => !record.error && ["HQ", "MQ", "LQ"].includes(record.quality));
+    const errors = records.filter((record) => record.error).length;
+    const unmeasured = Math.max(0, state.tracks.length - records.length);
+    $("result-summary").hidden = records.length === 0;
+    $("folder-score").hidden = records.length === 0;
+    ["HQ", "MQ", "LQ"].forEach((grade) => {
+      $("summary-" + grade.toLowerCase()).textContent = string(records.filter((record) => !record.error && record.quality === grade).length);
+    });
+    $("summary-errors").textContent = string(errors);
+    const score = measured.length ? measured.reduce((sum, record) => sum + ({ HQ: 100, MQ: 50, LQ: 0 }[record.quality]), 0) / measured.length : null;
+    $("folder-score-value").textContent = score === null ? "—" : score.toFixed(1);
     const single = state.sourceKind === "file";
     $("folder-score-label").textContent = single ? "FILE SPECTRAL-GRADE SCORE" : "FOLDER SPECTRAL-GRADE SCORE";
     $("folder-score-state").textContent = single ? errors || unmeasured ? "File not measured" : "Selected file measured" : state.inventoryIncomplete ? "Partial folder inventory" : errors || unmeasured ? "Partial folder summary" : "This inventory measured";
