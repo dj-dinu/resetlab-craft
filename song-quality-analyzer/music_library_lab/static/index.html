@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>Spectracraft · ResetLab Craft</title>
+  <link rel="icon" href="/mark.svg" type="image/svg+xml">
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/theme.css">
+  <script src="/scroll-engine.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="page-progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#library">Skip to your music selection</a>
+  <aside class="sidebar">
+    <a class="brand" href="#top" aria-label="Spectracraft — by ResetLab Craft home"><span class="brand-mark" aria-hidden="true"><img src="/mark.svg" alt=""></span><span class="brand-copy"><span class="suite-wordmark">Spectracraft</span><span class="brand-second tool-name">by ResetLab Craft</span></span></a>
+    <div class="local-badge"><span class="status-dot"></span> On your computer</div>
+    <nav aria-label="Workspace sections">
+      <a class="nav-link active" href="#library"><span class="nav-index">01</span> Your music</a>
+      <a class="nav-link" href="#tracks"><span class="nav-index">02</span> Tracks &amp; results</a>
+      <a class="nav-link" href="#report"><span class="nav-index">03</span> Your report</a>
+      <a class="nav-link" href="#method"><span class="nav-index">04</span> The method</a>
+    </nav>
+    <div class="sidebar-note"><div class="eyebrow">A CLOSER LOOK</div><p>An audio workshop.<br>Your music stays yours.</p><span class="small-text">Local alpha · No account needed</span></div>
+  </aside>
+  <main id="top">
+    <div class="appearance-action"><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark appearance" aria-pressed="false" title="Switch to dark appearance" disabled><span class="theme-symbol moon-symbol" aria-hidden="true">☾</span><span class="theme-symbol sun-symbol" aria-hidden="true">☀</span></button></div>
+    <header class="page-header" data-reveal>
+      <div class="hero-copy"><div class="eyebrow">SPECTRACRAFT <span class="eyebrow-divider">/</span> BY RESETLAB CRAFT</div><h1>See the spectrum.<br><span>Understand the result.</span></h1><p class="header-copy">A clear look at the frequencies inside your music.<br>Analyze full tracks, inspect the evidence, keep your findings.</p><div class="hero-status"><div class="scanner-status" id="scanner-status"><span class="status-dot neutral"></span><span>Checking tools…</span></div><span class="hero-local">Read locally. No music uploaded.</span></div></div>
+      <div class="hero-art" aria-hidden="true"><div class="art-grid"></div><span class="art-kicker">THE FULL PICTURE</span><div class="art-spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="art-caption"><span>Frequency</span><span>Time →</span></div><div class="art-orbit"></div></div>
+    </header>
+    <ol class="steps section-rail" aria-label="Analysis workflow">
+      <li class="current" data-step="scan"><a href="#library"><span>1</span><div>Choose<small>Folder or file</small></div></a></li>
+      <li data-step="analyze"><a href="#tracks"><span>2</span><div>Analyze<small>Selected full tracks</small></div></a></li>
+      <li data-step="results"><a href="#tracks"><span>3</span><div>Inspect<small>Measured evidence</small></div></a></li>
+      <li data-step="export"><a href="#report"><span>4</span><div>Keep<small>Your findings</small></div></a></li>
+      <li class="rail-status"><span class="status-dot neutral"></span><span id="rail-status">Ready to start</span></li>
+    </ol>
+    <div id="alerts" class="alerts" aria-live="polite"></div>
+    <section class="folder-panel panel" id="library" aria-labelledby="folder-title" data-reveal>
+      <div class="section-heading"><div><div class="eyebrow">01 / CHOOSE</div><h2 id="folder-title">Bring your music into focus.</h2><p>Choose a folder or one audio file. Your files, tags, and artwork stay unchanged.</p></div><span class="pill neutral-pill" id="supported-formats">Checking formats</span></div>
+      <form id="scan-form"><label for="root-path" class="field-label">Music folder or file</label><div class="folder-controls"><input id="root-path" name="root" type="text" placeholder="Paste the full path to a music folder or audio file" autocomplete="off" spellcheck="false" required><button class="button secondary" id="browse-button" type="button" hidden>Choose folder</button><button class="button secondary" id="browse-file-button" type="button" hidden>Choose file</button><button class="button primary" id="scan-button" type="submit">Read folder or file <span aria-hidden="true">→</span></button></div><div class="folder-bottom"><div class="folder-hint" id="formats-detail">Files are read on your computer.</div><button class="text-button" id="demo-button" type="button">Explore the demo <span aria-hidden="true">↗</span></button></div></form>
+    </section>
+    <section class="quality-note" aria-labelledby="quality-note-title" data-reveal><div class="note-icon" aria-hidden="true">≈</div><div><strong id="quality-note-title">A spectral coverage grade. A useful piece of the picture.</strong><p id="quality-rule">HQ requires measurable signal around 20 kHz for at least 30% of the full track. Encoded bitrate does not set the grade.</p></div><a class="note-link" href="#method">How it works <span aria-hidden="true">↓</span></a></section>
+    <section class="panel job-panel" id="job-panel" hidden aria-labelledby="job-title"><div class="section-heading"><div><div class="eyebrow">LOCAL PROCESSING</div><h2 id="job-title">Analyzing full tracks…</h2><p id="job-message" aria-live="polite">Starting the analysis.</p></div><button class="button secondary" id="cancel-button">Cancel</button></div><progress id="job-progress" max="100" value="0" aria-label="Current job progress"></progress><div class="job-progress-label" id="job-progress-label">Please keep this window open.</div></section>
+    <section class="panel review-panel" id="tracks" aria-labelledby="review-title" data-reveal>
+      <div class="section-heading review-heading"><div><div class="eyebrow" id="review-eyebrow">02 / ANALYZE &amp; INSPECT</div><h2 id="review-title">Your tracks <span class="count-label" id="track-count">0</span></h2><p id="review-description">Choose tracks, run a full analysis, then open the evidence.</p></div><div class="review-actions"><button class="button secondary" id="next-batch-button" disabled>Select next batch</button><button class="button primary" id="audit-button" disabled>Analyze selected tracks <span aria-hidden="true">≈</span></button></div></div>
+      <div class="folder-score" id="folder-score" hidden><div class="score-number"><span class="eyebrow" id="folder-score-label">FOLDER SPECTRAL-GRADE SCORE</span><strong id="folder-score-value">—</strong><span class="score-scale">/ 100</span></div><div class="score-explanation"><span class="pill" id="folder-score-state">Partial summary</span><strong id="folder-score-coverage">0 tracks measured</strong><p id="folder-score-exclusions">Unmeasured tracks and ungraded errors are excluded.</p><small>Average of measured grades: HQ = 100 · MQ = 50 · LQ = 0. This summary is not a fidelity or authenticity rating.</small></div></div>
+      <div class="result-summary" id="result-summary" hidden aria-label="Measured results in this session"><div class="summary-item"><span class="quality-badge hq">HQ</span><strong id="summary-hq">0</strong><small>20 kHz rule met</small></div><div class="summary-item"><span class="quality-badge mq">MQ</span><strong id="summary-mq">0</strong><small>18 kHz rule met</small></div><div class="summary-item"><span class="quality-badge lq">LQ</span><strong id="summary-lq">0</strong><small>Below both rules</small></div><div class="summary-item"><span class="quality-badge">ERROR</span><strong id="summary-errors">0</strong><small>Could not measure</small></div></div>
+      <div class="review-toolbar" id="review-toolbar" hidden><label class="select-all-label"><input type="checkbox" id="select-all" checked> <span id="selection-summary">Choose your tracks</span></label><span class="toolbar-note" id="analysis-summary">Existing labels are checked again when selected.</span></div>
+      <div class="filter-toolbar" id="filter-toolbar" hidden><div class="filter-control"><label for="grade-filter">Show</label><select id="grade-filter"><option value="All">All tracks</option><option value="HQ">Measured HQ</option><option value="MQ">Measured MQ</option><option value="LQ">Measured LQ</option><option value="Error">Ungraded errors</option><option value="Unmeasured">Unmeasured</option></select><span id="visible-count">0 tracks shown</span></div><span class="filter-hint">Filters change the view; your selection stays the same.</span></div>
+      <div class="empty-state" id="empty-state"><div class="empty-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><h3>The detail starts here.</h3><p>Read a folder or file to see its tracks.<br>The demo is a safe place to try the whole workflow.</p></div>
+      <div class="table-wrap" id="tracks-container" hidden><table class="track-table analyzer-table"><thead><tr><th class="select-column"><span class="sr-only">Selected</span></th><th scope="col">Track</th><th scope="col">Spectral grade</th><th scope="col">Full-track coverage</th><th scope="col">Evidence</th></tr></thead><tbody id="track-rows"></tbody></table></div>
+      <div class="review-footer"><div><strong id="review-status">Ready when you are.</strong><span id="review-status-detail">Full-track measurements, with your music left unchanged.</span></div><a class="text-button" href="#report">Your report <span aria-hidden="true">↓</span></a></div>
+    </section>
+    <section class="panel report-panel" id="report" aria-labelledby="report-title" data-reveal><div><div class="eyebrow">03 / KEEP</div><h2 id="report-title">Keep your latest batch.</h2><p id="report-description">Download the most recent completed batch. The selection summary combines batches; this report contains only the latest one.</p><span class="report-detail" id="report-detail">Your report is ready after an analysis completes.</span></div><div class="report-actions"><label class="sr-only" for="report-format">Report format</label><select id="report-format" hidden></select><button class="button secondary" id="export-button" disabled>Download JSON report <span aria-hidden="true">↓</span></button></div></section>
+    <section class="panel method-panel" id="method" aria-labelledby="method-title" data-reveal><div class="section-heading"><div><div class="eyebrow">04 / THE METHOD</div><h2 id="method-title">Clear rules. Room for context.</h2><p>These grades describe measured high-frequency coverage, across the whole track.</p></div><span class="pill neutral-pill">Bitrate ≠ grade</span></div><div class="method-grid"><div><span class="quality-badge hq">HQ</span><h3>At least 30% around 20 kHz.</h3><p>Measurable signal near 20 kHz must be present for at least 30% of the full decoded duration.</p></div><div><span class="quality-badge mq">MQ / LQ</span><h3>Then the 18 kHz rule.</h3><p id="mq-lq-rule">If HQ is not met, at least 30% around 18 kHz earns MQ. Otherwise the spectral grade is LQ.</p></div><div><span class="quality-badge">YOUR EARS MATTER</span><h3>LQ does not mean a bad master.</h3><p>Vintage recordings, filtered sounds, bass stems, and intentional lo-fi music can have limited bandwidth and sound exactly right.</p></div></div><div class="method-footnote">A spectrum does not prove original bitrate, source authenticity, or audible quality. Noise can add high-frequency energy; silence still counts toward total duration.</div></section>
+    <footer class="page-footer"><span>Spectracraft · by ResetLab Craft <span id="app-version"></span></span><span>GPLv3 · Use, modify, redistribute · No warranty</span><a href="/license.txt" target="_blank" rel="noopener noreferrer">License</a><a href="#top">Back to top ↑</a></footer>
+  </main>
+</body>
+</html>

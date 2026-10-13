@@ -1,0 +1,22 @@
+.localdeps/
+.work/
+.demo-library/
+.venv/
+__pycache__/
+*.pyc
+local_settings.json
+Run Local.cmd
+tools/patch_*scanner.py
+tools/validate_multiformat_scanner.py
+dist/
+build/
+*.spec
+*.mp3
+*.wav
+*.aif
+*.aiff
+*.flac
+*.aac
+*.m4a
+*.mp4
+*.zip

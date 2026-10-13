@@ -1,0 +1,10 @@
+* text=auto
+*.py text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.command text eol=lf
+*.cmd text eol=crlf
+# Preserve the generated scanner's exact bytes and recorded SHA-256.
+song-quality-analyzer/canonical/scan_quality.py -text

@@ -1,0 +1,7 @@
+{
+  "file": "scan_quality.py",
+  "sha256": "7408713ec47389f52f221940c7feeb523f302cd5114186958f36b84ab77fd3cf",
+  "maintenance": "Generated exact source asset; do not edit independently.",
+  "grading_mode": "--full-spectrum",
+  "license": "GPL-3.0-only"
+}
