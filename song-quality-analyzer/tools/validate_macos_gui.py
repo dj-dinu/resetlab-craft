@@ -38,15 +38,16 @@ def launch(bundle, output):
                 owned = [w for w in windows if w.get('kCGWindowOwnerPID') == proc.pid and w.get('kCGWindowLayer') == 0]
                 if owned:
                     report['native_window_bounds'] = dict(owned[0]['kCGWindowBounds'])
-                    report['passed'] = True
+                    report['native_window_visible'] = True
                     break
                 time.sleep(.2)
-            assert report['passed'], 'Normal packaged app did not display a Cocoa window'
+            assert report.get('native_window_visible'), 'Normal packaged app did not display a Cocoa window'
             subprocess.run(['/usr/sbin/screencapture', '-x', str(output.parent / 'normal-app-launch.png')], check=True)
             application = NSRunningApplication.runningApplicationWithProcessIdentifier_(proc.pid)
             assert application is not None and application.terminate(), 'Native application quit request failed'
             assert proc.wait(timeout=20) == 0, 'App did not exit cleanly after native quit'
             report['native_quit_clean'] = True
+            report['passed'] = True
         finally:
             if proc.poll() is None:
                 proc.terminate()
@@ -81,7 +82,10 @@ def main():
     with (output / 'instrumented-ui.log').open('wb') as log:
         proc = subprocess.Popen([str(executable(args.ui_test_bundle))], env=env, cwd=output, stdout=log, stderr=log)
         try:
-            assert proc.wait(timeout=420) == 0, 'Packaged UI flow failed; inspect mac-ui.json and instrumented-ui.log'
+            returncode = proc.wait(timeout=420)
+            if report_path.is_file():
+                print(report_path.read_text(), flush=True)
+            assert returncode == 0, 'Packaged UI flow failed; inspect mac-ui.json and instrumented-ui.log'
         finally:
             if proc.poll() is None:
                 proc.kill()

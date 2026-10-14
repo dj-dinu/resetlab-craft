@@ -11,7 +11,6 @@ if '--scanner-worker' not in sys.argv:
     import json
     import os
     from pathlib import Path
-    import queue
     import subprocess
     import time
     import webview
@@ -35,14 +34,13 @@ if '--scanner-worker' not in sys.argv:
 
     def driver():
         window = webview.windows[0]
-        replies = queue.Queue()
-        def qa_result(payload):
-            replies.put(payload)
         def js(code):
-            window.run_js('Promise.resolve().then(() => {' + code +
-                          '}).then(value => window.pywebview.api.qa_result({ok:true,value}),' +
-                          'error => window.pywebview.api.qa_result({ok:false,error:String(error)}));')
-            reply = replies.get(timeout=30)
+            # Cocoa run_js uses WKWebView's native completion result directly.
+            # It does not need evaluate_js's eval or an extra exposed API.
+            raw = window.run_js('JSON.stringify((function(){try{return {ok:true,value:(function(){' +
+                                code + '})()};}catch(error){return {ok:false,error:String(error)};}})())')
+            assert raw is not None, 'WKWebView did not return a native JavaScript result'
+            reply = json.loads(str(raw))
             assert reply.get('ok'), reply
             return reply.get('value')
         def until(condition, description, timeout=60):
@@ -90,8 +88,11 @@ if '--scanner-worker' not in sys.argv:
                   for p in fixture_root.rglob('*') if p.is_file()}
         try:
             assert window.events.loaded.wait(45), 'Cocoa page did not load'
-            window.expose(qa_result)
             until(lambda: dom('!!window.pywebview.api && !document.getElementById("theme-toggle").disabled'), 'app ready')
+            bridge = dom('({folder:typeof window.pywebview.api.choose_folder, file:typeof window.pywebview.api.choose_file, save:typeof window.pywebview.api.save_report})')
+            results['bridge_methods'] = bridge
+            assert all(value == 'function' for value in bridge.values()), 'Native bridge methods unavailable: ' + str(bridge)
+            check('native-bridge-methods-available')
             results['listener_port'] = session.server.server_port
             check('native-window-and-shipped-page-loaded')
             window.resize(640, 700)
@@ -136,12 +137,15 @@ if '--scanner-worker' not in sys.argv:
             assert job()['completed_batches'] == 3 and len(job()['summaries']) == 103
             assert job()['result']['completed_tracks'] == 103 and len(job()['result']['records']) == 3
             assert [r['source_path'] for r in job()['summaries']] == sorted(r['source_path'] for r in job()['summaries'])
+            assert dom('document.getElementById("folder-score-value").textContent') == '100.0'
+            assert dom('document.getElementById("folder-score-coverage").textContent') == '103 of 103 folder tracks measured'
             check('alphabetical-auto-batches-50-50-3', completed=103)
             load(fixture_root / 'Pause and close', 1)
             analyze()
             pause()
             click('pause-button')
             until(lambda: not job()['pause_event'].is_set(), 'resume request')
+            until(lambda: job()['progress'].get('paused') is False, 'decoder resume acknowledgment')
             until(lambda: not dom('document.getElementById("pause-button").disabled'), 'pause ready again')
             pause()
             check('pause-resume-acknowledged-by-worker')
