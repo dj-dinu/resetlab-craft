@@ -10,6 +10,7 @@ import ast
 from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
+import importlib.util
 import json
 import platform
 from pathlib import Path
@@ -92,7 +93,7 @@ def main():
             path = Path(str(entry))
             if "licenses" in path.parts or path.name.lower().startswith(("license", "copying", "notice")):
                 source = Path(distribution.locate_file(entry))
-                if source.is_file() and source.suffix.lower() not in {".pyc", ".pyo", ".py"}:
+                if source.is_file() and source.suffix.lower() not in {".pyc", ".pyo", ".py", ".so", ".pyd", ".dll", ".dylib", ".a", ".lib"}:
                     destination.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(source, destination / source.name)
     (notices / "README.txt").write_text(
@@ -135,6 +136,13 @@ def main():
             hidden.update(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom) and node.module:
             hidden.add(node.module)
+            for alias in node.names:
+                candidate = node.module + "." + alias.name
+                try:
+                    if alias.name != "*" and importlib.util.find_spec(candidate) is not None:
+                        hidden.add(candidate)
+                except (ImportError, AttributeError, ValueError):
+                    pass  # Imported classes/functions are not Python modules.
     hidden.update(["webview.platforms.cocoa"] if mac else
                   ["webview.platforms.winforms", "webview.platforms.edgechromium", "clr_loader", "pythonnet", "clr"])
     hooks = [str(PROJECT / "tools" / "macos_ui_runtime_hook.py")] if args.ui_test_driver else []
@@ -146,7 +154,7 @@ def main():
         f"    hiddenimports=collect_submodules('av') + {sorted(hidden)!r},\n"
         f"    hookspath=[], hooksconfig={{}}, runtime_hooks={hooks!r},\n"
         "    excludes=['tkinter','PyQt5','PyQt6','PySide2','PySide6','matplotlib','pandas','scipy','torch'],\n"
-        "    noarchive=False, optimize=1)\n"
+        f"    noarchive=False, optimize={0 if args.ui_test_driver else 1})\n"
         "pyz = PYZ(a.pure)\n"
         f"exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name={BUNDLE_NAME!r},\n"
         f"    debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=False, icon={str(icon)!r}{mac_options})\n"

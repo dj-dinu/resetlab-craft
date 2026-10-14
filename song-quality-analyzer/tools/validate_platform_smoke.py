@@ -96,9 +96,9 @@ def main():
                           'normal_bundle_without_ui_driver': True}
             finally:
                 sys.executable = saved_executable
-                if prior_frozen is None:
+                if prior_frozen is None and hasattr(sys, 'frozen'):
                     del sys.frozen
-                else:
+                elif prior_frozen is not None:
                     sys.frozen = prior_frozen
                 os.environ.clear()
                 os.environ.update(saved_env)

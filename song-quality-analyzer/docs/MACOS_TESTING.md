@@ -24,9 +24,13 @@ It is absent from the normal app. Only the save dialog's selected destination
 is substituted; this does not qualify the native save dialog. Evidence uses
 only generated audio. No session tokens, private settings or music are uploaded.
 
-The workflow initially uploads evidence only. Native dependency notices and
-corresponding sources must be reviewed before sharing a Mac binary. No signing
-credentials are configured; builds are ad-hoc signed and not notarized.
+The workflow uploads a volunteer kit only after package/UI tests and matching
+native dependency source checks pass. It contains the normal app ZIP, current
+project source, exact Python package sources, native source/build materials,
+notices, hashes and the volunteer guide. A changed FFmpeg/mpg123 version stops
+assembly until its matching materials are reviewed. The instrumented app is
+never uploaded. No signing credentials are configured; builds are ad-hoc signed
+and not notarized. This test artifact does not create a public Mac release.
 Use [the volunteer checklist](MACOS_VOLUNTEER_TEST.md) for Finder drops, native
 pickers, TCC, Gatekeeper, Retina/trackpad behavior and clean-user installation.
 

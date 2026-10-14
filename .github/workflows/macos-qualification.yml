@@ -62,6 +62,17 @@ jobs:
         run: |
           python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-ui-test --ui-test-driver
           python tools/validate_macos_gui.py --bundle .work/mac-unpacked/Spectracraft.app --ui-test-bundle dist/macos-ui-test/Spectracraft.app --output .work/mac-gui-evidence
+      - name: Assemble volunteer kit and corresponding source materials
+        if: matrix.architecture == 'arm64'
+        run: python tools/prepare_macos_test_package.py --decoder "$SONG_AUDIT_MPG123_PATH"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.architecture == 'arm64'
+        with:
+          name: Spectracraft-apple-silicon-volunteer-test
+          path: song-quality-analyzer/.work/mac-test-kit/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && matrix.architecture == 'arm64'
         with:
