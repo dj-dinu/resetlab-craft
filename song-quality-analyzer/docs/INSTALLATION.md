@@ -1,6 +1,18 @@
 # Installation
 
-Spectracraft is a local alpha. There is no public download or qualified Mac/Linux package yet. Run as a normal user; administrator access is not needed for analyzing songs.
+Spectracraft is an early Windows x64 public beta. Mac and Linux packages are not available. Run as a normal user; administrator access is not needed for analyzing songs.
+
+## Windows beta download
+
+1. [Download the complete Windows ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip).
+2. Extract it into a writable folder with a short path. Keep `Spectracraft.exe`
+   beside `_internal`; do not copy only the executable.
+3. Open `Spectracraft.exe`. Use **Add music** for a folder or audio file, wait
+   for metadata to load, then analyze. No developer Python installation is needed.
+
+The build is unsigned and uses Microsoft Edge WebView2 Runtime. Follow your
+device's security policy and report launch blocks. Review the
+[beta notes](WINDOWS_BETA.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
 
 ## Current local Windows build
 

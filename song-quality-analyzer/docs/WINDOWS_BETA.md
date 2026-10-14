@@ -1,14 +1,15 @@
 # Spectracraft Windows public beta
 
-Release candidate: **0.1.0-alpha.5**, Windows x64, portable ZIP.
+Published beta: **0.1.0-alpha.5**, Windows x64, portable ZIP.
 The user approved proceeding with a Windows public beta on October 14, 2026,
-after reporting that beta testing looked good. Publication is pending release
-asset preparation and GitHub publishing access; this document does not claim
-that downloads are already live.
+after reporting that beta testing looked good. The repository and
+[prerelease downloads](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5)
+are public. Source, dependency source/build materials and checksums accompany
+the Windows ZIP.
 
 ## Install and start
 
-1. When published, download the Windows ZIP from
+1. Download the Windows ZIP from
    [GitHub Releases](https://github.com/dj-dinu/resetlab-craft/releases).
 2. Extract the complete ZIP into a writable folder with a short path.
    Keep `Spectracraft.exe` beside its `_internal` folder.

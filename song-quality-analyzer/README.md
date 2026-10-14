@@ -6,11 +6,11 @@ Read a music folder or one audio file, measure complete tracks, inspect the spec
 
 ## Current status
 
-**Windows public beta preparation: 0.1.0-alpha.5.** User beta feedback is
-positive. This snapshot prepares a portable Windows x64 ZIP, corresponding
-source, dependency materials and checksums. Download assets become available
-on [GitHub Releases](https://github.com/dj-dinu/resetlab-craft/releases) when
-the beta is published. This is an early beta, with known qualification gaps.
+**Windows public beta: 0.1.0-alpha.5, published October 14, 2026.**
+[Download the Windows x64 ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip),
+or see the [release notes, corresponding source, dependency materials and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
+This is an unsigned early beta, with known qualification gaps. Mac and Linux
+packages are not available.
 
 | Platform | Actual evidence |
 | --- | --- |

@@ -3,7 +3,9 @@
 October 14, 2026: the user reported positive beta testing and authorized a
 **Windows-only public beta**. Spectracraft 0.1.0-alpha.5 remains an early beta,
 with its actual validation scope stated in [Windows beta notes](WINDOWS_BETA.md).
-GitHub publication must be verified before claiming downloads are live.
+The repository is public and the [Windows prerelease](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5)
+is published with source, dependency materials and checksums. All uploaded asset
+digests match the locally verified files.
 
 ## Executed evidence
 
