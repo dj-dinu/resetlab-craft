@@ -90,7 +90,7 @@ class DesktopBridgeTests(unittest.TestCase):
 
     def test_drop_local_file_or_folder_preserves_sources_and_consumes_once(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            root = Path(temporary).resolve()
             audio = root / "chosen.wav"
             audio.write_bytes(b"owned fixture")
             self.bridge._window = Window(self.session.origin + "/")

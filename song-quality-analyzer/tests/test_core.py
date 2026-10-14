@@ -38,7 +38,7 @@ def fixture(path, *, artist="Fixture Artist", title="Fixture Song", genre="Deep 
 class CoreTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="music-lab-tests-")
-        self.root = Path(self.temporary.name) / "Library"
+        self.root = Path(self.temporary.name).resolve() / "Library"
         self.root.mkdir()
 
     def tearDown(self):
