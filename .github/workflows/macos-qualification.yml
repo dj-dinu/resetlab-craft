@@ -1,0 +1,53 @@
+name: macOS qualification
+on:
+  push:
+    branches: [codex/macos-qualification]
+  pull_request:
+    paths: ['song-quality-analyzer/**', '.github/workflows/macos-qualification.yml']
+permissions:
+  contents: read
+jobs:
+  native-tests:
+    name: macOS 15 ${{ matrix.architecture }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    env:
+      EXPECTED_ARCHITECTURE: ${{ matrix.architecture }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            architecture: x64
+          - runner: macos-15
+            architecture: arm64
+    defaults:
+      run:
+        working-directory: song-quality-analyzer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.architecture }}
+      - name: Install native dependencies
+        run: |
+          brew install mpg123
+          echo "SONG_AUDIT_MPG123_PATH=$(brew --prefix mpg123)/lib/libmpg123.0.dylib" >> "$GITHUB_ENV"
+          python -m pip install --only-binary=av,numpy -r requirements-desktop.txt numpy==2.3.5
+          python -m pip check
+      - name: Verify canonical source and signal rules
+        run: |
+          python tools/export_canonical_source.py --check
+          python canonical/scan_quality.py --self-test
+      - name: Test application and native codec paths
+        run: |
+          python -m unittest discover -s tests
+          node tests/test_library_view.js
+          python tools/validate_platform_smoke.py --report .work/macos-smoke.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-smoke-${{ matrix.architecture }}
+          path: song-quality-analyzer/.work/macos-smoke.json
+          if-no-files-found: error
+          retention-days: 14
