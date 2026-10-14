@@ -1,11 +1,53 @@
 # macOS qualification
 
-Mac is not a released platform yet. The native test workflow targets macOS15
-Intel(x64) and Apple silicon(arm64) on standard GitHub runners. It verifies the
-same canonical scanner, application suite, synthetic six-format read-only
-analysis, source hashes and pause/resume acknowledgments. Cocoa backend import
-is checked; passing automation does not establish an interactive GUI or .app
-package. No private music or settings are uploaded.
+Mac is not a public release yet. Source/backend qualification passed on native
+macOS 15 Intel and Apple silicon runners. The extended workflow builds an ARM64
+`.app`, archives and extracts it with `ditto` to preserve executable bits and
+symlinks, and checks the extracted package. The current deployment target is
+macOS 15 or later. Older systems and Intel packages require separate qualification.
+
+## Packaged qualification
+
+- Exact canonical engine hash/self-test and application/JavaScript tests.
+- Generated WAV, AIFF, FLAC, ALAC, AAC and MP3 inputs with unchanged hashes.
+- Normal ARM64 bundle: native executable/decoder slices, ad-hoc signature,
+  frozen worker self-test, exact source/package metrics, time bins and spectrum
+  previews, and acknowledged Pause/Resume without Python/Homebrew on PATH.
+- Normal extracted app: visible Cocoa window and native application quit.
+- Separate instrumented test bundle: actual WKWebView controls, folder inventory,
+  progress, results, grade filter, evidence, report export, alphabetical automatic
+  batches of 50/50/3, Pause/Resume, Stop, half-screen resize, appearance and close
+  with a paused decoder.
+
+The build-only UI driver is enabled by `--ui-test-driver` for a separate CI app.
+It is absent from the normal app. Only the save dialog's selected destination
+is substituted; this does not qualify the native save dialog. Evidence uses
+only generated audio. No session tokens, private settings or music are uploaded.
+
+The workflow initially uploads evidence only. Native dependency notices and
+corresponding sources must be reviewed before sharing a Mac binary. No signing
+credentials are configured; builds are ad-hoc signed and not notarized.
+Use [the volunteer checklist](MACOS_VOLUNTEER_TEST.md) for Finder drops, native
+pickers, TCC, Gatekeeper, Retina/trackpad behavior and clean-user installation.
+
+## Reproduce the Apple silicon build
+
+After the source setup below, from `song-quality-analyzer`:
+
+```sh
+.venv/bin/python -m pip install -r requirements-build.txt numpy==2.3.5
+.venv/bin/python tools/build_desktop.py --scanner canonical/scan_quality.py \
+  --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-arm64
+.venv/bin/python tools/validate_platform_smoke.py \
+  --bundle dist/macos-arm64/Spectracraft.app --report .work/macos-frozen.json
+.venv/bin/python tools/build_desktop.py --scanner canonical/scan_quality.py \
+  --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-ui-test --ui-test-driver
+.venv/bin/python tools/validate_macos_gui.py --bundle dist/macos-arm64/Spectracraft.app \
+  --ui-test-bundle dist/macos-ui-test/Spectracraft.app --output .work/mac-gui-evidence
+```
+
+Build on native ARM64 macOS. Python and Homebrew are build/test requirements;
+the packaged app contains its own runtime and decoder.
 
 ## Run from source on a Mac
 
@@ -35,10 +77,9 @@ Include percent signs, decomposed Unicode, denied folder permissions, iCloud
 placeholders and removable drives. Links/aliases are intentionally refused.
 Hash sources before/after. Use synthetic or shareable tracks first.
 
-The current packaging recipe is Windows-only. A Mac .app/installer, bundled
-dylib discovery, signing/notarization and clean-user launch need a separate
-native build and qualification. Do not advertise a downloadable Mac release
-based only on a passing source workflow.
+Do not advertise a public Mac release based only on automation. Preserve the
+distinction between source tests, an ordinary packaged launch, the instrumented
+UI flow and a volunteer's downloaded-package qualification.
 
 Runner/dependency references: [GitHub standard runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners),
 [pywebview installation](https://pywebview.flowrl.com/guide/installation.html),

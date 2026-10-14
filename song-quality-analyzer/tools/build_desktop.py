@@ -6,10 +6,12 @@ This produces a local test bundle, not permission to publish a release.
 from __future__ import annotations
 
 import argparse
+import ast
 from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
 import json
+import platform
 from pathlib import Path
 import shutil
 import sys
@@ -34,6 +36,8 @@ def main():
     parser.add_argument("--scanner", type=Path)
     parser.add_argument("--decoder", type=Path)
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--ui-test-driver", action="store_true",
+                        help="macOS CI only: instrument a separate test bundle; never distribute it")
     parser.add_argument("--dist-dir", type=Path, default=PROJECT / "dist",
                         help="Versioned output directory beneath this project's dist folder")
     args = parser.parse_args()
@@ -46,14 +50,17 @@ def main():
     decoder = (args.decoder or Path(settings.get("decoder_path", ""))).resolve()
     if not scanner.is_file() or not decoder.is_file():
         raise SystemExit("Provide the canonical --scanner source and a permitted --decoder library.")
-    if sys.platform != "win32":
-        raise SystemExit("This bundle recipe currently targets Windows; macOS packaging needs its own native recipe and validation.")
+    if sys.platform not in {"win32", "darwin"}:
+        raise SystemExit("Build on Windows or macOS with native dependencies for that platform.")
+    mac = sys.platform == "darwin"
+    if args.ui_test_driver and not mac:
+        raise SystemExit("The build-only UI driver is for native macOS qualification.")
     from music_library_lab import __version__, APP_NAME, SUITE_NAME, TOOL_NAME, BUNDLE_NAME
     from tools.build_icon import write_icon
 
     work = PROJECT / ".work" / "desktop-build"
     icon_source = PROJECT / "music_library_lab" / "static" / "mark.svg"
-    icon = write_icon(icon_source, work / "app-icon.ico")
+    icon = write_icon(icon_source, work / ("app-icon.icns" if mac else "app-icon.ico"))
     stage = work / "stage"
     engine_dir, decoder_dir = stage / "canonical", stage / "decoder"
     notices = stage / "third-party-notices"
@@ -63,13 +70,18 @@ def main():
     shutil.copyfile(scanner, engine_copy)
     if sha256(scanner) != sha256(engine_copy):
         raise SystemExit("The generated engine copy differs from its canonical source.")
-    shutil.copyfile(decoder, decoder_dir / "libmpg123-0.dll")
+    decoder_name = "libmpg123.0.dylib" if mac else "libmpg123-0.dll"
+    shutil.copyfile(decoder, decoder_dir / decoder_name)
     copying = decoder.parent / "COPYING.txt"
     if copying.is_file():
         shutil.copyfile(copying, notices / "mpg123-COPYING.txt")
 
     packages = {}
-    for name in ("av", "numpy", "mutagen", "pywebview", "pythonnet", "clr_loader", "cffi", "bottle", "proxy_tools", "pyinstaller"):
+    package_names = ["av", "numpy", "mutagen", "pywebview", "bottle", "proxy_tools", "pyinstaller", "Pillow"]
+    package_names += (["pyobjc-core", "pyobjc-framework-Cocoa", "pyobjc-framework-WebKit", "pyobjc-framework-Quartz",
+                       "pyobjc-framework-Security", "pyobjc-framework-UniformTypeIdentifiers"] if mac
+                      else ["pythonnet", "clr_loader", "cffi"])
+    for name in package_names:
         try:
             distribution = importlib.metadata.distribution(name)
         except importlib.metadata.PackageNotFoundError:
@@ -96,34 +108,53 @@ def main():
                                    "scope": "project-owned source; third parties retain their own terms"},
                 "engine": {"file": "canonical/scan_quality.py", "sha256": sha256(engine_copy),
                            "maintenance": "generated from canonical source; no independent grading implementation"},
-                "decoder": {"file": "decoder/libmpg123-0.dll", "sha256": sha256(decoder)},
+                "decoder": {"file": "decoder/" + decoder_name, "sha256": sha256(decoder)},
                 "icon": {"source": "music_library_lab/static/mark.svg", "source_sha256": sha256(icon_source),
-                         "sha256": sha256(icon), "embedded_in": BUNDLE_NAME + ".exe"},
+                         "sha256": sha256(icon), "embedded_in": BUNDLE_NAME + (".app" if mac else ".exe")},
+                "platform": sys.platform, "architecture": platform.machine(),
+                "ui_test_driver": args.ui_test_driver,
+                "signing": "ad-hoc test build; not notarized" if mac else "unsigned test build",
                 "packages": packages}
     (stage / "build-manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     import av
     av_libraries = Path(av.__file__).parent.parent / "av.libs"
-    binaries = [(str(path), "av.libs") for path in sorted(av_libraries.glob("*.dll"))]
-    binaries.append((str(decoder_dir / "libmpg123-0.dll"), "decoder"))
+    binaries = [(str(path), "av.libs") for path in sorted(av_libraries.glob("*.dylib" if mac else "*.dll"))]
+    binaries.append((str(decoder_dir / decoder_name), "decoder"))
     datas = [(str(PROJECT / "music_library_lab" / "static"), "music_library_lab/static"),
              (str(PROJECT / "LICENSE"), "."), (str(PROJECT / "docs" / "REUSE_AND_BRANDING.md"), "."),
              (str(engine_copy), "canonical"), (str(stage / "build-manifest.json"), "."),
              (str(notices), "third-party-notices")]
     spec = work / (BUNDLE_NAME + ".spec")
+    # The canonical engine is a data asset, so PyInstaller cannot discover its
+    # imports by following the entry point. Collect them mechanically, without
+    # maintaining a second engine or changing its rules.
+    hidden = set()
+    for node in ast.walk(ast.parse(engine_copy.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.Import):
+            hidden.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            hidden.add(node.module)
+    hidden.update(["webview.platforms.cocoa"] if mac else
+                  ["webview.platforms.winforms", "webview.platforms.edgechromium", "clr_loader", "pythonnet", "clr"])
+    hooks = [str(PROJECT / "tools" / "macos_ui_runtime_hook.py")] if args.ui_test_driver else []
+    mac_options = f", target_arch={platform.machine()!r}, codesign_identity=None" if mac else ""
     spec.write_text(
         "from PyInstaller.utils.hooks import collect_submodules, collect_data_files\n"
         f"a = Analysis([{str(PROJECT / 'run_desktop.py')!r}], pathex={[str(PROJECT), str(DEPENDENCIES)]!r},\n"
         f"    binaries={binaries!r}, datas={datas!r} + collect_data_files('webview'),\n"
-        "    hiddenimports=collect_submodules('av') + ['wave', 'numpy', 'mutagen', 'webview.platforms.winforms',\n"
-        "        'webview.platforms.edgechromium', 'clr_loader', 'pythonnet', 'clr'],\n"
-        "    hookspath=[], hooksconfig={}, runtime_hooks=[],\n"
+        f"    hiddenimports=collect_submodules('av') + {sorted(hidden)!r},\n"
+        f"    hookspath=[], hooksconfig={{}}, runtime_hooks={hooks!r},\n"
         "    excludes=['tkinter','PyQt5','PyQt6','PySide2','PySide6','matplotlib','pandas','scipy','torch'],\n"
         "    noarchive=False, optimize=1)\n"
         "pyz = PYZ(a.pure)\n"
         f"exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name={BUNDLE_NAME!r},\n"
-        f"    debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=False, icon={str(icon)!r})\n"
-        f"bundle = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name={BUNDLE_NAME!r})\n",
+        f"    debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=False, icon={str(icon)!r}{mac_options})\n"
+        f"bundle = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name={BUNDLE_NAME!r})\n"
+        + (f"app = BUNDLE(bundle, name={BUNDLE_NAME + '.app'!r}, icon={str(icon)!r},\n"
+           f"    bundle_identifier='com.resetlabcraft.spectracraft', version='0.1.0',\n"
+           "    info_plist={'NSPrincipalClass': 'NSApplication', 'NSHighResolutionCapable': True,\n"
+           "                'NSAppleScriptEnabled': False, 'LSMinimumSystemVersion': '15.0'})\n" if mac else ""),
         encoding="utf-8",
     )
     if args.prepare_only:
@@ -132,10 +163,11 @@ def main():
     import PyInstaller.__main__
     PyInstaller.__main__.run([str(spec), "--noconfirm", "--distpath", str(dist_dir),
                              "--workpath", str(work / "pyinstaller-work")])
-    bundle = dist_dir / BUNDLE_NAME
+    bundle = dist_dir / (BUNDLE_NAME + ".app" if mac else BUNDLE_NAME)
     manifest["bundle_bytes"] = sum(path.stat().st_size for path in bundle.rglob("*") if path.is_file())
     (work / "completed-build.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    print(json.dumps({"built": True, "executable": str(bundle / (BUNDLE_NAME + ".exe")),
+    executable = bundle / "Contents" / "MacOS" / BUNDLE_NAME if mac else bundle / (BUNDLE_NAME + ".exe")
+    print(json.dumps({"built": True, "executable": str(executable),
                       "bundle_bytes": manifest["bundle_bytes"], "engine_sha256": manifest["engine"]["sha256"]}))
 
 

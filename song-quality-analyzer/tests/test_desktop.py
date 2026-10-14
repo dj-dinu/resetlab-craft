@@ -8,6 +8,7 @@ from collections import defaultdict
 from unittest.mock import patch
 
 from music_library_lab.desktop import DesktopBridge
+from music_library_lab.server import State
 
 
 class Window:
@@ -133,6 +134,20 @@ class DesktopBridgeTests(unittest.TestCase):
             finally:
                 self.bridge._unbind_drop()
             self.assertEqual(_dnd_state["num_listeners"], 0)
+
+    def test_packaged_mac_and_windows_find_their_native_decoder(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            (root / "decoder").mkdir()
+            (root / "canonical").mkdir()
+            for name in ("libmpg123.0.dylib", "libmpg123-0.dll"):
+                (root / "decoder" / name).write_bytes(b"owned decoder path fixture")
+            for platform, name in (("darwin", "libmpg123.0.dylib"), ("win32", "libmpg123-0.dll")):
+                with patch("music_library_lab.server.PROJECT", root), patch("music_library_lab.server.FROZEN", True), \
+                     patch("music_library_lab.server.sys.platform", platform), patch.dict("os.environ", {}, clear=True):
+                    state = State()
+                    self.assertEqual(state.decoder, str(root / "decoder" / name))
+                    self.assertEqual(state.scanner, root / "canonical" / "scan_quality.py")
 
 
 if __name__ == "__main__":

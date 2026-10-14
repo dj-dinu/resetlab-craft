@@ -48,6 +48,13 @@ def main():
         _worker_streams()
         if getattr(sys, "frozen", False):
             scanner = Path(sys._MEIPASS) / "canonical" / "scan_quality.py"
+            # A worker launched directly must also use the shipped decoder,
+            # rather than a developer's Homebrew installation or environment.
+            import os
+            decoder_name = "libmpg123.0.dylib" if sys.platform == "darwin" else "libmpg123-0.dll"
+            decoder = Path(sys._MEIPASS) / "decoder" / decoder_name
+            if decoder.is_file():
+                os.environ["SONG_AUDIT_MPG123_PATH"] = str(decoder)
         else:
             from music_library_lab.server import State
             scanner = State().scanner
