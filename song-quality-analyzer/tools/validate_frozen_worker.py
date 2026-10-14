@@ -18,8 +18,8 @@ sys.path.insert(0,str(PROJECT/'.localdeps'))
 import numpy as np
 from music_library_lab import BUNDLE_NAME
 
-EXPECTED_ENGINE_SHA='7408713ec47389f52f221940c7feeb523f302cd5114186958f36b84ab77fd3cf'
-CORE_KEYS=('duration_seconds','coverage_20khz','coverage_18khz','seconds_20khz','seconds_18khz','sample_rate','time_bins')
+EXPECTED_ENGINE_SHA='b1a7509f684641c6d23b381bea4853f4c87e94135227917a67bad9d9e5ccf0c8'
+CORE_KEYS=('duration_seconds','coverage_20khz','coverage_18khz','seconds_20khz','seconds_18khz','sample_rate','time_bins','quality_rule_version','coverage_threshold')
 
 
 def digest(path:Path)->str:
@@ -56,6 +56,7 @@ def main()->None:
     parser.add_argument('--regression-report',type=Path,default=PROJECT/'.work'/'multiformat-mp3-validation.json',help='Ignored local regression report supplying real input paths when --track is omitted')
     parser.add_argument('--report',type=Path,default=PROJECT/'.work'/'frozen-worker-validation.json')
     args=parser.parse_args()
+    args.bundle=args.bundle.resolve()
     settings_path=PROJECT/'local_settings.json'
     settings=json.loads(settings_path.read_text(encoding='utf-8')) if settings_path.is_file() else {}
     scanner_value=args.scanner or settings.get('scanner_path')

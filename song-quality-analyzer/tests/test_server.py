@@ -130,6 +130,15 @@ class LocalServerTests(unittest.TestCase):
                 self.assertEqual(self.request("/api/preferences", {"theme": "dark"}, **kwargs)[0], 403)
                 self.assertEqual(path.read_bytes(), before)
 
+    def test_import_starts_empty_demo_is_removed_and_sorting_asset_is_local(self):
+        status, config = self.request("/api/config")
+        self.assertEqual(status, 200)
+        self.assertEqual(config["default_root"], "")
+        self.assertEqual(self.request("/api/demo")[0], 404)
+        with urlopen(self.base + "/library-view.js", timeout=5) as response:
+            self.assertIn(b"orderedTracks", response.read())
+            self.assertNotIn("unsafe-eval", response.headers["Content-Security-Policy"])
+
     def test_preference_payload_allowlist_preserves_existing_file(self):
         self.assertEqual(self.request("/api/preferences", {"theme": "dark", "scrolling": "native"})[0], 200)
         path = self.preference_root / "ui-preferences.json"
@@ -194,7 +203,7 @@ class LocalServerTests(unittest.TestCase):
         self.assertEqual(self.request("/api/audit", {"root": str(chosen.parent), "tracks": [{"id": track_id}]})[0], 400)
         self.assertEqual(self.request("/api/audit", {"root": str(sibling), "tracks": [{"id": track_id}]})[0], 400)
         called = []
-        def operation(scanner, source, tracks, *args):
+        def operation(scanner, source, tracks, *args, **kwargs):
             called.append((str(source), [t["source_path"] for t in tracks]))
             return {"records": [], "audio_files_modified": False}
         with patch("music_library_lab.server.analyze_tracks", operation):
@@ -210,6 +219,113 @@ class LocalServerTests(unittest.TestCase):
         self.assertEqual(self.request("/local_settings.json")[0], 404)
         self.assertEqual(self.request("/../README.md")[0], 404)
 
+    def batch_inventory(self, count):
+        root = str(self.preference_root.resolve())
+        rows = [{"id": str(index), "source_path": str(count - index) + ".wav", "enabled": True}
+                for index in range(1, count + 1)]
+        self.state.inventories[root] = list(reversed(rows))
+        return root, rows
+
+    def wait_terminal(self, identifier):
+        for _ in range(300):
+            if self.state.jobs[identifier]["status"] != "running" and not self.state.busy:
+                return self.state.jobs[identifier]
+            threading.Event().wait(.01)
+        self.fail("Analysis job did not finish")
+
+    def test_automatic_batches_preserve_requested_order_and_trusted_paths(self):
+        root, rows = self.batch_inventory(153)
+        calls = []
+        def operation(scanner, source, tracks, output, decoder, progress, cancel, paused=None):
+            calls.append([dict(track) for track in tracks])
+            progress({"done": len(tracks), "total": len(tracks), "message": "Finished"})
+            return {"records": [{"id": track["id"], "source_path": track["source_path"],
+                                 "quality": "HQ", "status": "analyzed"} for track in tracks],
+                    "scanner_sha256": "stable", "audio_files_modified": False}
+        with patch("music_library_lab.server.analyze_tracks", operation):
+            code, started = self.request("/api/audit", {"root": root,
+                "tracks": [{"id": row["id"], "source_path": "../forged.wav"} for row in rows]})
+            self.assertEqual(code, 200)
+            job = self.wait_terminal(started["job_id"])
+        self.assertEqual(job["status"], "complete")
+        self.assertEqual([len(batch) for batch in calls], [50, 50, 50, 3])
+        self.assertEqual([row["id"] for batch in calls for row in batch], [row["id"] for row in rows])
+        self.assertEqual([row["source_path"] for batch in calls for row in batch], [row["source_path"] for row in rows])
+        self.assertEqual(len(job["summaries"]), 153)
+        self.assertEqual(job["result"]["completed_tracks"], 153)
+        self.assertEqual(len(job["result"]["records"]), 3)
+
+    def test_pause_resume_require_authentication_and_stop_a_paused_worker(self):
+        entered = threading.Event()
+        def operation(scanner, root, tracks, output, decoder, progress, cancel, paused=None):
+            entered.set()
+            while not cancel():
+                progress({"done": 0, "total": 1, "paused": paused(), "message": "Working"})
+                threading.Event().wait(.01)
+            raise InterruptedError("Stopped")
+        with patch("music_library_lab.server.analyze_tracks", operation):
+            identifier = self.state.job(str(self.preference_root), [{"id": "one"}])
+            self.assertTrue(entered.wait(2))
+            body = {"job_id": identifier, "paused": True}
+            self.assertEqual(self.request("/api/pause", body, token=False)[0], 403)
+            self.assertEqual(self.request("/api/pause", body, origin="https://other.example")[0], 403)
+            self.assertEqual(self.request("/api/pause", {"job_id": identifier, "paused": "yes"})[0], 400)
+            self.assertFalse(self.state.jobs[identifier]["pause_event"].is_set())
+            self.assertEqual(self.request("/api/pause", body)[0], 200)
+            self.assertTrue(self.state.jobs[identifier]["pause_event"].is_set())
+            self.assertEqual(self.request("/api/pause", {"job_id": identifier, "paused": False})[0], 200)
+            self.assertFalse(self.state.jobs[identifier]["pause_event"].is_set())
+            self.request("/api/pause", body)
+            self.assertEqual(self.request("/api/cancel", {"job_id": identifier})[0], 200)
+            self.assertEqual(self.wait_terminal(identifier)["status"], "cancelled")
+            self.assertEqual(self.request("/api/report/" + identifier)[0], 409)
+
+    def test_pause_between_batches_refresh_and_stop_retain_completed_report(self):
+        root, rows = self.batch_inventory(101)
+        def operation(scanner, source, tracks, output, decoder, progress, cancel, paused=None):
+            self.state.jobs[next(iter(self.state.jobs))]["pause_event"].set()
+            return {"records": [{"id": track["id"], "source_path": track["source_path"],
+                                 "quality": "HQ", "status": "analyzed"} for track in tracks],
+                    "scanner_sha256": "stable", "audio_files_modified": False}
+        with patch("music_library_lab.server.analyze_tracks", operation):
+            _, started = self.request("/api/audit", {"root": root, "tracks": [{"id": row["id"]} for row in rows]})
+            identifier = started["job_id"]
+            for _ in range(200):
+                if self.state.jobs[identifier]["progress"].get("paused"):
+                    break
+                threading.Event().wait(.01)
+            restored = self.request("/api/jobs/" + identifier + "?with_inventory=1")[1]
+            self.assertTrue(restored["pause_requested"])
+            self.assertEqual(len(restored["inventory"]), 101)
+            self.assertEqual(restored["selected_ids"], [row["id"] for row in rows])
+            self.assertEqual(len(restored["summaries"]), 50)
+            compact = self.request("/api/jobs/" + identifier + "?after_batch=1")[1]
+            self.assertIsNone(compact["result"])
+            self.assertEqual(compact["summaries"], [])
+            self.assertEqual(self.request("/api/report/" + identifier)[0], 409)
+            self.request("/api/cancel", {"job_id": identifier})
+            job = self.wait_terminal(identifier)
+        self.assertEqual(job["status"], "cancelled")
+        code, report = self.request("/api/report/" + identifier)
+        self.assertEqual(code, 200)
+        self.assertEqual(report["completed_tracks"], 50)
+        self.assertEqual(report["selected_total"], 101)
+        self.assertEqual(len(report["records"]), 50)
+
+    def test_engine_change_between_batches_stops_without_mixing_summaries(self):
+        root, rows = self.batch_inventory(51)
+        calls = []
+        def operation(scanner, source, tracks, output, decoder, progress, cancel, paused=None):
+            calls.append(len(tracks))
+            return {"records": [{"id": track["id"], "quality": "HQ", "status": "analyzed"} for track in tracks],
+                    "scanner_sha256": str(len(calls)), "audio_files_modified": False}
+        with patch("music_library_lab.server.analyze_tracks", operation):
+            _, started = self.request("/api/audit", {"root": root, "tracks": [{"id": row["id"]} for row in rows]})
+            job = self.wait_terminal(started["job_id"])
+        self.assertEqual(job["status"], "failed")
+        self.assertEqual(len(job["summaries"]), 50)
+        self.assertEqual(job["result"]["scanner_sha256"], "1")
+
     def test_public_license_is_exact_and_does_not_expand_file_access(self):
         with urlopen(self.base + "/license.txt", timeout=5) as response:
             self.assertEqual(response.read(), (PROJECT / "LICENSE").read_bytes())
@@ -219,7 +335,7 @@ class LocalServerTests(unittest.TestCase):
 
     def test_background_cancel_terminates_job_state(self):
         started = threading.Event()
-        def fake_operation(scanner, root, tracks, output_dir, decoder, progress, cancel):
+        def fake_operation(scanner, root, tracks, output_dir, decoder, progress, cancel, paused=None):
             started.set()
             while not cancel():
                 started.wait(.01)

@@ -1,5 +1,7 @@
 # Folder summaries and incomplete audio
 
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+
 Implemented locally October 12, 2026. The analyzer remains read-only.
 
 The folder score is the equally weighted average of measured grade values: HQ100, MQ50, LQ0. It is a summary of the user's spectral rule, not a percentage of audible quality or original source authenticity. All-HQ gives100. The test folder with36HQ,30MQ,34LQ gives51. Errors and unmeasured tracks are excluded, counted visibly, and prevent a complete-folder claim. A capped inventory is explicitly partial.

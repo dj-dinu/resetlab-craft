@@ -189,6 +189,26 @@ button:disabled { opacity: .55; }
 .note-link { color: var(--teal-dark); font-size: 11px; }
 
 /* Grade colors carry text labels, so their meaning survives every theme. */
+.music-drop-zone { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:24px; border:2px dashed var(--line); border-radius:14px; background:var(--surface); margin-top:22px; }
+.music-drop-zone strong { color:var(--ink); font-size:16px; }
+.music-drop-zone p { color:var(--muted); font-size:12px; margin:8px 0 0; line-height:1.6; }
+.music-drop-zone.drag-active { border-color:var(--teal); background:var(--teal-pale); }
+.music-picker { position:relative; flex-shrink:0; }
+.source-menu { position:absolute; right:0; top:calc(100% + 8px); min-width:190px; padding:6px; border:1px solid var(--line); background:var(--white); border-radius:12px; z-index:40; box-shadow:0 12px 30px #0002; }
+.source-option { display:block; width:100%; padding:12px 16px; background:transparent; color:var(--ink); border:0; border-radius:8px; text-align:left; cursor:pointer; font:inherit; font-size:13px; }
+.source-option:hover, .source-option:focus-visible { background:var(--teal-pale); outline:2px solid var(--teal); outline-offset:-2px; }
+#root-path { width:100%; box-sizing:border-box; border:1px solid var(--line); background:var(--white); color:var(--ink); border-radius:9px; padding:13px 15px; font:inherit; font-size:13px; }
+.job-panel { position:sticky; top:78px; z-index:25; background:var(--white); box-shadow:0 10px 35px #0002; }
+.job-actions { display:flex; gap:8px; flex-shrink:0; }
+@media(max-height:500px) { .job-panel { position:static; } }
+@media(max-width:600px) { .job-panel .section-heading { flex-wrap:wrap; } .job-actions { width:100%; justify-content:flex-end; } }
+.job-panel .section-heading { padding-bottom:12px; }
+.progress-reading { display:flex; justify-content:space-between; gap:12px; margin:0 26px 12px; color:var(--muted); font-size:12px; }
+.progress-reading strong { color:var(--teal-dark); font-size:18px; }
+.job-panel progress { height:12px; accent-color:var(--teal); }
+#job-message { overflow-wrap:anywhere; }
+.job-progress-label { font-size:12px; color:var(--muted); }
+@media(max-width:600px) { .music-drop-zone { padding:17px; gap:15px; flex-direction:column; align-items:flex-start; } .music-drop-zone strong { font-size:14px; } .music-picker { width:100%; } .music-picker>.button { width:100%; } .source-menu { left:0; } .job-panel { top:67px; } .progress-reading { margin:0 17px 12px; } }
 .summary-item { background: var(--surface); border-color: var(--line); }
 .summary-item small { font-size: 11px; line-height: 1.6; color: var(--quiet-ink); }
 .quality-badge { font-size: 10px; background: var(--surface-soft); color: var(--quiet-ink); }

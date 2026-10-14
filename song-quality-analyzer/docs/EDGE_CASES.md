@@ -4,7 +4,7 @@ Updated October 12, 2026. This checklist distinguishes implemented behavior, exe
 
 ## Fixed grading and interpretation rules
 
-HQ requires qualifying measurable signal near 20 kHz for at least 30% of the complete decoded duration, including quiet sections. Otherwise MQ requires at least 30% near 18 kHz; otherwise LQ. The canonical signal/activity thresholds, half-second bins, duration weighting and mean channel-power policy remain unchanged.
+HQ requires qualifying measurable signal at or above 20 kHz for at least 40% of the complete decoded duration, including quiet sections. Otherwise MQ requires at least 40% at or above 18 kHz; otherwise LQ. The canonical signal/activity thresholds, half-second bins, duration weighting and mean channel-power policy remain unchanged.
 
 Bitrate, codec/container, extension, sample rate, bit depth and lossless compression do not determine the grade. A successfully decoded silent, very short or intentionally band-limited source can receive LQ. A decode/resource failure has no completed grade. Noise can qualify high-frequency coverage without demonstrating good sound.
 
@@ -23,9 +23,9 @@ These results do not establish authenticity, original bitrate, mastering quality
 
 ## Current evidence
 
-The current canonical update passed 58 synthetic edge/format cases, 16 integrity cases, its explicit self-test and exact real MP3 HQ/MQ/LQ result/bin/power regressions with unchanged source hashes. The app Python suite ran 76 tests: 75 passed and one POSIX-native filename test skipped on Windows. Mocked native bridge tests do not qualify actual dialogs. The earlier adapter analyzed 36 of 42 fixture inputs; six expected failures remained ungraded. Fixture and unit counts are different.
+The alpha.3 canonical update passed 58 synthetic edge/format cases, 16 integrity cases and its explicit self-test. Four real MP3s were rescanned with unchanged source hashes. The rebuilt worker matches canonical metrics, time bins and retained spectra across six codecs and real HQ/MQ/LQ references. The app Python suite ran 80 tests: 79 passed and one POSIX-native filename test skipped on Windows. Mocked native bridge tests do not qualify actual dialogs. The earlier adapter analyzed 36 of 42 fixture inputs; six expected failures remained ungraded. Fixture and unit counts are different.
 
-Earlier MP3 browser cancellation/retry evidence remains useful. The mixed-format browser completed nine fixtures (3 HQ / 2 MQ / 3 LQ / 1 expected corrupt error); the export parsed, all nine source hashes matched and tested absolute/cache/private-username data was absent. The current branded Windows worker passes six codecs and real references exactly, plus duration-integrity examples. The new browser metadata/path run passes five synthetic inputs with sources unchanged. Actual native-shell, native macOS and clean-machine package qualification remain pending in [local test results](LOCAL_TEST_RESULTS.md).
+Earlier browser cancellation/retry, mixed-format and metadata/path evidence remains useful, but its recorded grades were measured under the old rule. Alpha.3 browser/native-shell, native macOS and clean-machine package qualification remain pending in [local test results](LOCAL_TEST_RESULTS.md).
 
 ## The eight previously observed gaps
 
@@ -50,7 +50,7 @@ Earlier MP3 browser cancellation/retry evidence remains useful. The mixed-format
 | Audio, tags, artwork, cues, grids, playlists and DJ notes | No source or DJ collection modification. | Read-only routes and whole-file preservation checks exist. Repeat through final installed packages. |
 | Corrupt, empty, unsupported, encrypted or undecodable input | Explicit ungraded failure; other valid files keep their own results. | Implemented codec/error behavior and synthetic cases pass. Full damaged/truncated/profile matrix pending. |
 | Existing HQ/MQ/LQ differs from measurement | Recheck selected audio; distinguish existing label from measured result. | Synthetic existing-HQ demo and real MP3 references pass. |
-| Just below, exactly at, just above 30% | Grade with original unrounded values; display precision/context without rounding up a contradictory claim. | Canonical boundary fixtures pass; UI uses extra precision or “<30%.” End-to-end boundary presentation checks remain useful. |
+| Just below, exactly at, just above 40% | Grade with original unrounded values; display precision/context without rounding up a contradictory claim. | Canonical boundary fixtures pass; UI uses extra precision or “<40%.” End-to-end boundary presentation checks remain useful. |
 | Native rate cannot represent a target | Keep the rule, explain the frequency ceiling, never upsample. | Native-rate/context logic and synthetic cases pass; complete codec/rate matrix pending. |
 | Target band meets Nyquist | Evaluate the canonical available-band policy without redefining it. | Code uses available bins around the target; target-center and partial-band variants need explicit coverage in the release matrix. |
 | Channel layouts and rates differ | Preserve mean channel power; reject unsupported changes rather than silently resample/downmix. | Mono/stereo/inverse-phase fixture evidence exists. At most eight channels is a bound, not qualification of every layout. |

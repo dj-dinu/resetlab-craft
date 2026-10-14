@@ -4,9 +4,23 @@ Spectracraft is a local alpha. There is no public download or qualified Mac/Linu
 
 ## Current local Windows build
 
-1. Open the complete folder dist/Spectracraft in the project workspace.
+The latest local build is alpha.5 at `dist/alpha5/Spectracraft`. Close the
+previous app before opening the new executable, and keep its complete
+`_internal` folder beside it. Use the complete versioned alpha.5 folder.
+
+1. Open the complete folder `dist/alpha5/Spectracraft` in the project workspace.
 2. Keep Spectracraft.exe beside its _internal folder; do not copy only the executable.
-3. Open Spectracraft.exe, choose a music folder or one audio file, click Read folder or file, then analyze.
+3. Open Spectracraft.exe, use Add music to choose a folder or audio file, wait for metadata to load automatically, then analyze.
+
+Alpha.3 applies the [updated 40% quality rule](QUALITY_RULES.md). Reanalyze to
+replace an earlier measurement; existing saved reports and song tags stay as they were.
+
+Alpha.5 adds automatic alphabetical batches, Pause/Resume and Stop while
+retaining the 420 × 360 logical-pixel window minimum. On Windows,
+try Win + Left or Win + Right for half-screen placement. The layout adapts
+to narrow widths; move horizontally inside the results panel to reach all
+columns. Actual native snapping and display-scale combinations still need
+manual testing.
 
 The bundle includes Python, the reviewed scanner and audio decoders. Windows needs the Microsoft Edge WebView2 Runtime used by the native window. Get missing prerequisites from the [official Microsoft source](https://developer.microsoft.com/en-us/microsoft-edge/webview2/). The current build is unsigned and native operation still needs manual qualification; a security block or launch failure belongs in the test record.
 

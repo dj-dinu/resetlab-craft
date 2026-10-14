@@ -8,7 +8,7 @@ Help people find audio files worth a closer check, understand the measured evide
 
 The central question is: **“Does this file contain the frequency coverage I expected, and where should I investigate?”** It can guide listening and follow-up. It cannot establish that a master sounds good, that a source is authentic, or that a player will accept the file.
 
-The user's canonical method remains the one grading engine: HQ requires measurable signal around 20 kHz for at least 30% of the complete decoded duration; MQ otherwise requires at least 30% around 18 kHz; LQ is the fallback. Encoded bitrate and file format are informational. Keep the existing absolute/relative signal thresholds and channel-power policy. No second scanner or format-specific grading shortcut is authorized by this brief.
+The user's canonical method remains the one grading engine: HQ requires measurable signal at or above 20 kHz for at least 40% of the complete decoded duration; MQ otherwise requires at least 40% at or above 18 kHz; LQ is the fallback. Encoded bitrate and file format are informational. Keep the existing absolute/relative signal thresholds and channel-power policy. No second scanner or format-specific grading shortcut is authorized by this brief.
 
 Call the displayed result **spectral coverage grade**. Put the measured percentages and evidence beside HQ/MQ/LQ. Successfully decoded narrow-band audio and failed analysis must remain distinct: the former may receive LQ under the rule; the latter receives no grade.
 
@@ -72,11 +72,11 @@ The detailed [edge-case matrix](EDGE_CASES.md) records resolved implementation m
 | --- | --- |
 | Intentional filtering, lo-fi, vintage audio or a bass/vocal stem | Preserve the measured grade and explain that limited high-frequency content may be intentional. |
 | Hiss, distortion or artificial high-frequency energy qualifies HQ | Show coverage evidence. Make no authenticity or perceived-quality claim. |
-| Only 30% of a mixed-source edit qualifies | The overall grade follows the existing rule; the timeline exposes the other sections. HQ does not promise uniform coverage. |
+| Only 40% of a mixed-source edit qualifies | The overall grade follows the existing rule; the timeline exposes the other sections. HQ does not promise uniform coverage. |
 | Silence, fades or a long quiet introduction | Include the entire decoded duration, as required. Show qualifying seconds and the denominator. |
 | A very quiet export | Explain that the canonical absolute activity/signal thresholds can affect coverage. Do not secretly normalize or redefine the measurement. |
 | A low native sample rate | Explain the frequency ceiling beside the grade. For example, 32 kHz audio cannot represent the 18/20 kHz target bands. Do not upsample to manufacture eligibility. |
-| A result immediately below 30% | Grade using unrounded values and show sufficient precision or “just below 30%,” so the display does not contradict the grade. |
+| A result immediately below 40% | Grade using unrounded values and show sufficient precision or “just below 40%,” so the display does not contradict the grade. |
 | Empty audio, unsupported encoding, corruption or interrupted decoding | Return an explicit failure/unsupported/incomplete status with no credible completed grade. Decoder recovery needs documented qualification. |
 | A source changes, disappears or is replaced during the run | Discard stale results, preserve the source and offer a rescan. |
 

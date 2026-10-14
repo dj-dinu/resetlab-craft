@@ -77,7 +77,7 @@ def spectrogram_data(record: dict) -> dict | None:
 
 
 def _analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: Path,
-                   decoder: str = "", progress=None, cancel=None) -> dict:
+                    decoder: str = "", progress=None, cancel=None, paused=None) -> dict:
     if not scanner.is_file():
         raise AnalysisError("Configure the canonical scan_quality.py path before analyzing.")
     selected = [t for t in tracks if t.get("enabled", True)]
@@ -133,14 +133,19 @@ def _analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: P
         command = ([sys.executable, "--scanner-worker", "--full-spectrum"] if getattr(sys, "frozen", False)
                    else [sys.executable, "-B", str(scanner), "--full-spectrum"])
         command += [str(p) for _, p, _ in batch]
+        command += ["--keep-input-order"]
+        if paused is not None:
+            command += ["--interactive-control"]
         command += ["--output", str(destination), "--spectra-dir", str(spectra)]
         startup = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        proc = subprocess.Popen(command, stdin=subprocess.PIPE if paused is not None else subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                 text=True, encoding="utf-8", errors="replace", env=env, **startup)
         stopped = threading.Event()
 
         def monitor():
-            while not stopped.wait(.2):
+            sent_pause = False
+            while not stopped.is_set():
                 if cancel and cancel() and proc.poll() is None:
                     proc.terminate()
                     try:
@@ -148,18 +153,40 @@ def _analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: P
                     except subprocess.TimeoutExpired:
                         proc.kill()
                     return
+                if paused is not None and proc.poll() is None:
+                    wanted = bool(paused())
+                    if wanted != sent_pause:
+                        try:
+                            proc.stdin.write(json.dumps({"action": "pause" if wanted else "resume"}) + "\n")
+                            proc.stdin.flush()
+                            sent_pause = wanted
+                        except (BrokenPipeError, OSError, ValueError):
+                            return
+                if stopped.wait(.1):
+                    return
 
         watcher = threading.Thread(target=monitor, daemon=True)
         watcher.start()
         log = deque(maxlen=20)
         try:
+            if progress:
+                progress({"done": done, "total": len(files),
+                          "message": f"Measuring {files[done][1].name} · track {done + 1} of {len(files)}"})
             for line in proc.stdout:
                 log.append(line.rstrip())
-                if line.startswith("PROGRESS "):
+                if line.startswith("DONE ") and proc.stdin is not None:
+                    stopped.set()
+                    proc.stdin.close()
+                elif line.startswith("CONTROL ") and progress:
+                    control = json.loads(line[8:])
+                    progress({"done": done, "total": len(files), "paused": bool(control.get("paused")),
+                              "message": "Analysis paused. Resume to continue this track." if control.get("paused") else "Resuming full-track analysis…"})
+                elif line.startswith("PROGRESS "):
                     done += 1
                     if progress:
                         progress({"done": done, "total": len(files),
-                                  "message": f"Analyzed {done} of {len(files)} tracks"})
+                                  "message": (f"Measuring {files[done][1].name} · track {done + 1} of {len(files)}"
+                                              if done < len(files) else "Decoded the selected tracks. Checking the results…")})
             status = proc.wait()
         finally:
             stopped.set()
@@ -171,6 +198,8 @@ def _analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: P
                     proc.kill()
                     proc.wait(timeout=3)
             watcher.join(timeout=1)
+            if proc.stdin is not None:
+                proc.stdin.close()
             proc.stdout.close()
         if cancel and cancel():
             raise InterruptedError("Analysis cancelled. Song files were not changed.")
@@ -220,7 +249,7 @@ def _analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: P
 
 
 def analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: Path,
-                   decoder: str = "", progress=None, cancel=None) -> dict:
+                   decoder: str = "", progress=None, cancel=None, paused=None) -> dict:
     """Verify all selected inputs on every exit, including failure/cancellation."""
     if not scanner.is_file():
         raise AnalysisError("Configure the canonical scan_quality.py path before analyzing.")
@@ -244,7 +273,9 @@ def analyze_tracks(scanner: Path, root: Path, tracks: list[dict], output_dir: Pa
             progress({"done": 0, "total": len(selected), "message": "Verifying selected source files"})
         baselines[key] = (path, hash_file(path, cancel=cancel))
     try:
-        return _analyze_tracks(scanner, source, selected, output_dir, decoder, progress, cancel)
+        if paused is None:
+            return _analyze_tracks(scanner, source, selected, output_dir, decoder, progress, cancel)
+        return _analyze_tracks(scanner, source, selected, output_dir, decoder, progress, cancel, paused)
     finally:
         if progress:
             progress({"done": len(selected), "total": len(selected), "message": "Verifying that source files remain unchanged"})

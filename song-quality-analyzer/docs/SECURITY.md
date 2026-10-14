@@ -1,5 +1,7 @@
 # Local security review
 
+Alpha.2 drop paths pass the same ordinary-file/folder boundary as picker paths. Only one source is accepted; URLs, links, unsupported files and busy-operation drops are refused. No file bytes are uploaded. The pinned pywebview 6.2.1 adapter uses native event dispatch and `run_js` to retain the existing CSP without `eval` or `unsafe-eval`. It relies on pywebview internals for path resolution; requalify it before upgrades. Actual OS gestures remain unqualified. The in-app demo endpoint/default path were removed.
+
 Status: local alpha, October 12, 2026. A public binary release is not yet qualified. This review is evidence of specific boundaries, not a guarantee that arbitrary hostile files or every platform are safe.
 
 ## Boundaries checked

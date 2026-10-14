@@ -25,7 +25,7 @@ def _worker_streams():
                                       ctypes.POINTER(wintypes.HANDLE), wintypes.DWORD,
                                       wintypes.BOOL, wintypes.DWORD]
     kernel.DuplicateHandle.restype = wintypes.BOOL
-    for name, number in (("stdout", -11), ("stderr", -12)):
+    for name, number in (("stdin", -10), ("stdout", -11), ("stderr", -12)):
         if getattr(sys, name) is not None:
             continue
         handle = kernel.GetStdHandle(number & 0xffffffff)
@@ -33,10 +33,11 @@ def _worker_streams():
         process = kernel.GetCurrentProcess()
         if handle and handle != wintypes.HANDLE(-1).value and kernel.DuplicateHandle(
                 process, handle, process, ctypes.byref(duplicate), 0, False, 2):
-            fd = msvcrt.open_osfhandle(duplicate.value, os.O_WRONLY | os.O_BINARY)
-            stream = os.fdopen(fd, "w", buffering=1, encoding="utf-8", errors="replace")
+            mode = "r" if name == "stdin" else "w"
+            fd = msvcrt.open_osfhandle(duplicate.value, (os.O_RDONLY if name == "stdin" else os.O_WRONLY) | os.O_BINARY)
+            stream = os.fdopen(fd, mode, buffering=1, encoding="utf-8", errors="replace")
         else:
-            stream = open(os.devnull, "w", encoding="utf-8")
+            stream = open(os.devnull, "r" if name == "stdin" else "w", encoding="utf-8")
         setattr(sys, name, stream)
 
 

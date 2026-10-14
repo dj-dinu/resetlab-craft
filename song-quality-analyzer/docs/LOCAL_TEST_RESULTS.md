@@ -1,5 +1,106 @@
 # Local qualification record
 
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+
+## Alpha.5 automatic batches and pause validation — October 14, 2026
+
+Selected tracks run in title A–Z order through automatic batches of 50.
+Pause/Resume holds the decoded-bin position; Stop keeps completed batches.
+The 40% rule and spectral math are unchanged. GPU acceleration is not implemented.
+
+The application suite runs 84 tests: 83 pass and one POSIX-only filename case
+is skipped on Windows. JavaScript syntax and numeric/accent-aware sorting and
+50/50/3 batching invariants pass. All 58 format/edge fixtures and 16 integrity
+fixtures pass. Four real-track regressions retain every metric and time bin
+exactly, and whole-file hashes are unchanged.
+
+Source and frozen Windows worker checks pass real-track Pause/Resume, held
+state, requested input order, Stop while paused and closed-control handling.
+The packaged worker also passes its self-test, nine-input/six-codec canonical
+comparison and duration-integrity examples. Packaged code, static assets,
+license and canonical source are verified against the current source.
+
+The browser completes 103 owned synthetic tracks as 50, 50 and 3, producing
+34 HQ, 34 MQ, 34 LQ and one expected ungraded error; the score is 50 across
+102 measured tracks. Pause survives refresh of an active run. Stop in batch
+two retains 50 completed records and offers the 53 remaining tracks. Its
+50-record JSON download is sanitized, the prior report is unchanged and all
+103 fixture hashes are unchanged. At 400 × 320, progress controls remain
+reachable and the document has no horizontal overflow. Hostile metadata is
+displayed as text. Browser and worker checks do not qualify native OS gestures.
+
+Current engine SHA-256:
+`b1a7509f684641c6d23b381bea4853f4c87e94135227917a67bad9d9e5ccf0c8`.
+The complete local Windows bundle is `dist/alpha5/Spectracraft`.
+Native clean Windows installation, window/dialog/drop, display scaling,
+shutdown and offline traffic capture remain release gates. Neither macOS
+architecture has been built or tested natively. No new publication occurred.
+
+## Alpha.4 window resize validation — October 14, 2026
+
+The native window minimum was 960 × 640 logical pixels, preventing smaller
+split-screen windows. It is now 420 × 360, with resizing explicitly enabled.
+The rebuilt Windows executable's desktop bytecode matches the current source,
+including these creation settings. Its complete folder is 209,175,721 bytes.
+The canonical scanner hash and 40% grading rule are unchanged.
+
+The in-app browser was tested at 1280 × 840, 960 × 700, 683 × 600, 640 × 600,
+480 × 400 and 400 × 320. Three owned synthetic tracks produced HQ/MQ/LQ and
+score 50.0. At each width, the document has no horizontal overflow, key controls
+stay inside the viewport, long titles retain their complete hover text, and
+the results table scrolls inside its own panel. At 400 pixels, filtering,
+sorting and expanded spectrum evidence work while preserving the score.
+Keyboard focus returns the table to its first column. Fixture hashes are unchanged.
+
+Nine desktop bridge tests pass. The alpha.4 frozen worker passes its self-test,
+nine-input/six-codec canonical comparisons and duration-integrity examples.
+All eight static assets, source license and canonical engine match the source.
+The active source preview was refreshed to alpha.4 and the temporary browser
+viewport override was reset. These browser/code/package checks do not test
+actual native Windows snapping or each display-scale combination; those tasks
+are recorded in the [beta guide](BETA_TEST_GUIDE.md). Mac remains untested.
+
+## Alpha.3 rule-change validation
+
+The canonical self-test passes the 40% boundaries, exclusion of bins below
+20 kHz and qualifying signal above 20 kHz. All 58 edge/format fixtures and
+16 duration-integrity fixtures pass. The application suite ran 80 tests:
+79 passed and one POSIX-only filename test was skipped on Windows. JavaScript
+syntax checks pass.
+
+Four real MP3s were rescanned using the updated canonical source, including
+a long compilation. All whole-file hashes stayed unchanged. The rebuilt
+Windows worker matches the canonical metrics, time bins and retained spectra
+for nine inputs across six codecs and real HQ/MQ/LQ references. Its self-test
+and duration-integrity examples also pass. All eight bundled static assets,
+the source license and generated scanner are verified byte-for-byte.
+
+Current scanner SHA-256:
+`8bf5083ea8f491f2c0d0233e6c3b44496af0bfccc13a38fd8401434e4b1e58e6`.
+The complete local bundle is `dist/alpha3/Spectracraft`, 209,175,702 bytes.
+These executed checks do not qualify the native GUI, OS drop gestures, a clean
+Windows installation or macOS. The remaining platform/release gaps below apply.
+
+## Historical alpha.2 and earlier validation
+
+October 13, 2026, local alpha.2: 80 Python tests ran (79 passed, one POSIX case
+skipped on Windows). New drop origin/ordinary-source/queue/receiver checks pass;
+actual native gestures are untested. Node syntax and numeric/accent-aware sort
+tests pass, including stable track identity and unchanged selections/order.
+The versioned Windows folder `dist/alpha2/Spectracraft` is 221,037,627 bytes;
+its worker self-test, six-codec fixtures, three real HQ/MQ/LQ references and
+duration-integrity examples pass. All eight static assets, license and canonical
+source match their originals. Grading remains unchanged.
+
+Visual verification for this version is pending: automatic browser approval
+review blocked opening the owned loopback preview after an earlier URL-policy
+block. No alternate browser/headless workaround was used. The initial test run
+had one aborted loopback connection; the retry and final suite passed. The first
+build hit an in-use DLL and left the old output incomplete; the separate alpha.2
+folder built successfully. The worker validator's relative bundle path was
+normalized before its successful rerun. These do not qualify native Windows
+dialogs, OS file/folder drag gestures or Mac operation.
+
 Private source preview: a source-only checkout without private settings ran
 76 application tests (75 passed, one POSIX case skipped on Windows). Its
 generated canonical source passed SHA-256 verification and `--self-test`.
@@ -11,7 +112,7 @@ and native platform qualification remains pending.
 
 October 12, 2026: **Spectracraft by ResetLab Craft is a local Windows alpha. A public release is not yet qualified.** These are executed checks, not a claim that all files, machines or platforms are safe. Private test payloads, paths and music stay out of public source packages.
 
-## Current checks
+## Earlier checks
 
 | Check | Executed result | Scope |
 | --- | --- | --- |
@@ -30,9 +131,9 @@ October 12, 2026: **Spectracraft by ResetLab Craft is a local Windows alpha. A p
 | Sun/moon and Smooth preset | Passed in browser | Keyboard Enter toggles appearance; dark mode persists across reload; Smooth is restored; removed preference dropdowns are absent. Focused scrolling checks cover reduced motion and native gesture/keyboard/nested-overflow handling. Physical devices remain unqualified. |
 | Responsive/source-to-package checks | Passed | 1280×840 and 489×840 browser views have no document horizontal overflow. Current packaged static assets match source byte-for-byte; the R signal native icon is generated from the shared SVG. |
 
-Current canonical source SHA-256: `7408713ec47389f52f221940c7feeb523f302cd5114186958f36b84ab77fd3cf`. The decoder change adds file-protocol and supported-demuxer allowlists only; spectral rules and duration grading remain unchanged. Build snapshots are mechanically generated and hash-verified.
+Earlier canonical source SHA-256: `7408713ec47389f52f221940c7feeb523f302cd5114186958f36b84ab77fd3cf`. That decoder change added file-protocol and supported-demuxer allowlists without changing the grading rule at that time. Build snapshots are mechanically generated and hash-verified.
 
-Current private Windows bundle: `dist/Spectracraft/Spectracraft.exe`; **221,029,784 bytes for the complete folder bundle**, including `_internal`. The rebuilt worker passes the nine-input regression, self-test and duration cases. All packaged static assets match source. A successful frozen worker does not qualify the native window or installation.
+Earlier private Windows bundle: `dist/Spectracraft/Spectracraft.exe`; **221,029,784 bytes for the complete folder bundle**, including `_internal`. That worker passed the nine-input regression, self-test and duration cases. A successful frozen worker does not qualify the native window or installation.
 
 ## Folder/file, cache and extended runtime update
 

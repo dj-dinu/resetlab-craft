@@ -1,12 +1,12 @@
 # ResetLab Craft
 
-An audio workshop for DJs and producers. ResetLab Craft is the selected parent brand for a family of focused local music tools. This private source preview prepares the first tool for a small beta; a public open-source release will follow qualification.
+An audio workshop for DJs and producers. ResetLab Craft is the parent brand for a family of focused local music tools. Spectracraft is being prepared for its first Windows public beta.
 
-**[Spectracraft](song-quality-analyzer/README.md)** is the first implemented tool: inspect full-track spectral coverage, review folder scores and keep evidence without altering music. The current build is a local alpha; public release is conditional on platform, licensing and usability checks.
+**[Spectracraft](song-quality-analyzer/README.md)** is the first implemented tool: inspect full-track spectral coverage, review folder scores and keep evidence without altering music. See its [Windows beta notes](song-quality-analyzer/docs/WINDOWS_BETA.md) for installation, known limits and the actual validation scope.
 
 | Tool | Purpose | Status |
 | --- | --- | --- |
-| Spectracraft | Spectral inspection, folder summaries and integrity checks | Local alpha |
+| Spectracraft | Spectral inspection, folder summaries and integrity checks | Windows public beta preparation |
 | Keycraft | Musical key, BPM and harmonic-mixing assistance | Future concept |
 | Stemcraft | Reuse versioned separated stems where supported | Feasibility research |
 | Setcraft | Suggest the next song, transition cue points and optional wordplay links | Future concept |

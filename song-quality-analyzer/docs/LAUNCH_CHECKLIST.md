@@ -1,17 +1,17 @@
 # First-launch checklist
 
-Aim for a trustworthy, simple first experience. Passing unit tests alone does not qualify a public release.
+October 14, 2026: the user approved a Windows public beta after positive testing. This checklist records continued qualification; passing unit tests alone does not establish stable operation on every machine. See [Windows beta notes](WINDOWS_BETA.md).
 
 ## Automated/local edge cases
 
 | Case | Expected result / evidence |
 | --- | --- |
 | Low bitrate with high-frequency coverage, lossless filtered audio, existing HQ label | Canonical spectral rules decide the grade; filenames/bitrate do not. Covered by format/real regressions. |
-| Silence, quiet sections, short tails, boundary just below 30%, phase-inverted stereo | Full duration and reviewed mean channel-power policy retained. Covered by synthetic checks. |
+| Silence, quiet sections, short tails, boundary just below 40%, phase-inverted stereo | Full duration and reviewed mean channel-power policy retained. Covered by synthetic checks. |
 | Four-minute header with one-minute decoded audio / valid short edit | First ungraded integrity error; second analyzed normally. Covered by duration and packaged-worker checks. |
 | Unsupported codec/container, video, multiple streams, DRM markers, corrupted/truncated files | No completed grade; actionable failure. Tested variants are narrower than every possible profile. |
-| Large folder / more than 50 tracks / partial inventory / multi-batch summary | Caps and partial labels visible; selection/filter/score/report behavior remains clear. Browser 100-track check passed. |
-| Cancel and retry, close during work, changed input file | Cancellation and hash boundaries covered locally; actual native close/reaping still pending. |
+| Large folder / more than 50 tracks / partial inventory / multi-batch summary | Automatic title-ordered batches: 103-track browser run passed as 50/50/3. Partial score and latest-batch export remain explicit. |
+| Cancel and retry, close during work, changed input file | Source/frozen controls and browser Pause/refresh/Resume/Stop pass; actual native close/reaping still needs broader qualification. |
 | Unusual filenames, Unicode, long paths, collisions, symlinks/junctions | Path/selection boundaries covered; POSIX-native name case skipped on Windows and needs native execution. |
 | Malicious metadata / private diagnostics / foreign Host or Origin / invalid token | Render as text; deny unauthorized requests; exported report omits absolute/cache paths. New security checks cover malformed token and generic static failures. |
 | Internal decoder URL / disguised playlist | No network fetch with restricted decoder; test server receives zero requests. |
@@ -35,4 +35,4 @@ No Mac native test has occurred on the Windows development machine. Linux is a l
 
 Observe DJs/producers choosing a folder, understanding a partial score and ungraded error, finding evidence and saving a report without coaching. Record where they hesitate and fix the workflow. Confirm that they understand spectral coverage as one piece of evidence rather than a fidelity certificate.
 
-Release only reviewed source/synthetic fixtures/permitted dependencies. Exclude local settings, tokens, real music, private caches, patch helpers and screenshots containing private paths. Resolve license/signing/name/handle checks and prepare a private security-reporting channel. GitHub remains unpublished until this gate is satisfied.
+Release only reviewed source/synthetic fixtures/permitted dependencies. Exclude local settings, tokens, real music, private caches, patch helpers and screenshots containing private paths. Resolve license/signing/name/handle checks and prepare a private security-reporting channel. Verify actual GitHub publication and release assets before announcing downloads.

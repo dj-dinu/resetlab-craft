@@ -403,6 +403,8 @@ def main():
 
 # Full-duration mode added 2026-10-09 for the user's 30% / 20 kHz quality rule.
 FULL_N=2048;FULL_WIN=np.hanning(FULL_N);FULL_HOP=1024
+FULL_COVERAGE_THRESHOLD=.40
+FULL_RULE_VERSION="2026-10-13-40-percent-at-or-above"
 
 def full_spectrum_power(pcm,sr):
     blocks=np.lib.stride_tricks.sliding_window_view(pcm,FULL_N,axis=0)[::FULL_HOP]
@@ -415,7 +417,7 @@ def full_spectrum_metrics(pcm,sr):
     ref=p[(hz>=1000)&(hz<10000)].mean()
     active=float(p.sum())>3e-6
     def reaches(f):
-        band=p[(hz>=f-200)&(hz<=f+200)]
+        band=p[hz>=f]  # Only frequencies at or above the requested cutoff count.
         if not len(band) or f>sr/2:return False
         energy=float(band.mean())
         return bool(active and energy>=1e-11 and energy>=ref*10**(-6.5))
@@ -433,6 +435,44 @@ FULL_DEFAULT_SPECTRUM_BUDGET_BYTES=32*1024*1024
 class _FullSpectrumResourceLimit(RuntimeError):
     pass
 
+class _FullSpectrumControlClosed(InterruptedError):
+    pass
+
+class _FullPauseControl:
+    """Optional parent-owned stdin control; no audio or grade changes."""
+    def __init__(self,stream,emit=None):
+        self.running=threading.Event();self.running.set();self.closed=False
+        self.emit=emit or (lambda paused: print('CONTROL '+json.dumps({'paused':paused}),flush=True))
+        self.reader=threading.Thread(target=self._read,args=(stream,),daemon=True)
+        self.reader.start()
+
+    def _read(self,stream):
+        try:
+            while True:
+                line=stream.readline(4097)
+                if not line or len(line)>4096 or not line.endswith('\n'):break
+                try: command=json.loads(line)
+                except (ValueError,TypeError):continue
+                if isinstance(command,dict):self._apply(command.get('action'))
+        finally:
+            self.closed=True;self.running.set()
+
+    def finish(self):
+        # Parent closes stdin after DONE; join before Python finalizes stdin.
+        self.reader.join()
+
+    def _apply(self,action):
+        if action=='pause':self.running.clear()
+        elif action=='resume':self.running.set()
+
+    def wait(self):
+        if self.closed:raise _FullSpectrumControlClosed('Analysis control connection closed')
+        if self.running.is_set():return
+        self.emit(True)
+        self.running.wait()
+        if self.closed:raise _FullSpectrumControlClosed('Analysis control connection closed')
+        self.emit(False)
+
 class _FullSpectrumAccumulator:
     def __init__(self,sr,channels,retain_spectrum,budget_bytes,metadata=None):
         if not isinstance(sr,int) or not FULL_MIN_SAMPLE_RATE<=sr<=FULL_MAX_SAMPLE_RATE:
@@ -447,6 +487,8 @@ class _FullSpectrumAccumulator:
         self.evidence_reason=None;self.short_seconds=0.;self.silent_seconds=0.;self.quiet_seconds=0.
 
     def add(self,pcm):
+        control=getattr(TLS,"full_pause",None)
+        if control is not None:control.wait()
         if pcm.ndim!=2 or pcm.shape[1]!=self.channels:raise ValueError('Invalid decoded PCM shape')
         if not len(pcm):return
         seconds=len(pcm)/self.sr
@@ -485,7 +527,8 @@ class _FullSpectrumAccumulator:
         if self.retain and not self.spectra and self.evidence_reason is None:
             self.evidence_reason='No bin contained at least 2048 decoded samples for spectrum evidence'
         status='not_requested' if not self.retain else 'unavailable' if self.evidence_reason else 'available'
-        result=dict(duration_seconds=self.duration,coverage_20khz=self.high/self.duration,
+        result=dict(quality_rule_version=FULL_RULE_VERSION,coverage_threshold=FULL_COVERAGE_THRESHOLD,
+            duration_seconds=self.duration,coverage_20khz=self.high/self.duration,
             coverage_18khz=self.mid/self.duration,seconds_20khz=self.high,seconds_18khz=self.mid,
             sample_rate=self.sr,time_bins=self.series,channels=self.channels,
             native_frequency_ceiling_hz=self.sr/2,analysis_context=context,
@@ -732,25 +775,43 @@ def full_spectrum_self_test():
     assert full_spectrum_metrics(filtered(16000),sr)[:2]==(False,False)
     assert full_spectrum_metrics(filtered(18500),sr)[:2]==(False,True)
     assert full_spectrum_metrics(filtered(20500),sr)[:2]==(True,True)
+    assert full_spectrum_metrics(filtered(19500),sr)[:2]==(False,True)
+    tone=np.sin(2*np.pi*22000*np.arange(sr//2)/sr).astype(np.float32)
+    assert full_spectrum_metrics(np.column_stack((tone,tone)),sr)[:2]==(True,True)
     assert full_spectrum_metrics(np.zeros((sr//2,2)),sr)[:2]==(False,False)
-    results=[full_spectrum_metrics(filtered(16000 if i<7 else 20500),sr)[0] for i in range(10)]
-    assert sum(results)/len(results)==.3
-    assert spectrum_grade(.299,.5)=='MQ'
-    assert spectrum_grade(.30,.5)=='HQ'
-    assert spectrum_grade(0,.299)=='LQ'
-    print('SELF_TEST passed: known 16, 18.5, 20.5 kHz cutoffs, silence, and 30% mixed coverage',flush=True)
+    results=[full_spectrum_metrics(filtered(16000 if i<6 else 20500),sr)[0] for i in range(10)]
+    assert sum(results)/len(results)==.4
+    assert spectrum_grade(.399999,.5)=='MQ'
+    assert spectrum_grade(.40,.5)=='HQ'
+    assert spectrum_grade(.400001,.5)=='HQ'
+    assert spectrum_grade(0,.40)=='MQ'
+    assert spectrum_grade(0,.399999)=='LQ'
+    control=_FullPauseControl.__new__(_FullPauseControl)
+    control.running=threading.Event();control.running.set();control.closed=False
+    observed=threading.Event();finished=threading.Event();states=[]
+    control.emit=lambda paused:(states.append(paused),observed.set())
+    control._apply('pause')
+    worker=threading.Thread(target=lambda:(control.wait(),finished.set()),daemon=True)
+    worker.start();assert observed.wait(2) and not finished.is_set()
+    control._apply('resume');assert finished.wait(2);worker.join(2)
+    assert states==[True,False]
+    control.closed=True
+    try:control.wait();raise AssertionError('Closed control must fail')
+    except _FullSpectrumControlClosed:pass
+    print('SELF_TEST passed: known 16, 18.5, 20.5 kHz cutoffs, silence, and 40% mixed coverage and strict at-or-above frequency regions',flush=True)
 
 FULL_SPECTRUM_METHOD = (
     'Full decoded duration, including quiet sections; 0.5-second bins; 2048-point Hann FFT, '
-    '1024-sample hop; mean power over channels. A bin qualifies near a frequency when '
-    'its +/-200 Hz band has power >= -110 dBFS and >= -65 dB relative to the 1-10 kHz band, '
-    'with summed spectral power >3e-6 to exclude silence. HQ: >=30% near 20 kHz; '
-    'MQ: otherwise >=30% near 18 kHz; LQ: otherwise. Encoded bitrate is informational only. '
+    '1024-sample hop; mean power over channels. A bin qualifies at or above a frequency when '
+    'the mean power of available FFT bins from that frequency to Nyquist is >= -110 dBFS '
+    'and >= -65 dB relative to the 1-10 kHz band, with summed spectral power >3e-6 to exclude silence. '
+    'HQ: >=40% at or above 20 kHz; MQ: otherwise >=40% at or above 18 kHz; '
+    'LQ: otherwise. Encoded bitrate is informational only. '
     'Spectrum grades do not establish original source bitrate.'
 )
 
 def spectrum_grade(coverage_20khz,coverage_18khz):
-    return 'HQ' if coverage_20khz>=.30 else 'MQ' if coverage_18khz>=.30 else 'LQ'
+    return 'HQ' if coverage_20khz>=FULL_COVERAGE_THRESHOLD else 'MQ' if coverage_18khz>=FULL_COVERAGE_THRESHOLD else 'LQ'
 
 def full_spectrum_cli(argv):
     import argparse
@@ -762,6 +823,8 @@ def full_spectrum_cli(argv):
     parser.add_argument('--output',type=Path,help='Optional JSON report; parent must already exist')
     parser.add_argument('--spectra-dir',type=Path,help='Optional existing folder for per-track spectrum arrays')
     parser.add_argument('--skip-hq',action='store_true',help='Skip (HQ) files only when explicitly requested')
+    parser.add_argument('--keep-input-order',action='store_true',help='Retain explicit file order; folder contents remain path-sorted')
+    parser.add_argument('--interactive-control',action='store_true',help='Parent-owned stdin JSON pause/resume control at decoded-bin boundaries')
     parser.add_argument('--spectrum-budget-mib',type=float,default=32,help='Bound retained spectrum evidence memory, 0 through 256 MiB; full grading continues without evidence if exceeded')
     args=parser.parse_args(argv)
     if not math.isfinite(args.spectrum_budget_mib) or not 0<=args.spectrum_budget_mib<=256:parser.error('Spectrum budget must be between 0 and 256 MiB')
@@ -769,16 +832,24 @@ def full_spectrum_cli(argv):
     if not args.inputs:parser.error('Supply files or folders; no implicit full-library scan')
     if args.output and not args.output.parent.is_dir():parser.error('Output parent folder does not exist')
     if args.spectra_dir and not args.spectra_dir.is_dir():parser.error('Spectrum output folder does not exist')
-    paths=set()
+    control=None
+    if args.interactive_control:
+        if sys.stdin is None:parser.error('Interactive control needs a redirected stdin pipe')
+        control=_FullPauseControl(sys.stdin)
+    TLS.full_pause=control
+    paths=[];seen=set()
     for text in args.inputs:
         p=Path(text)
         if not p.exists():parser.error('Input does not exist: '+text)
-        if p.is_dir():paths.update(q.resolve() for q in p.rglob('*') if q.is_file() and q.suffix.lower() in FULL_EXTS and not q.name.startswith('._'))
-        elif p.suffix.lower() in FULL_EXTS:paths.add(p.resolve())
+        if p.is_dir():found=sorted((q.resolve() for q in p.rglob('*') if q.is_file() and q.suffix.lower() in FULL_EXTS and not q.name.startswith('._')),key=lambda q:str(q).casefold())
+        elif p.suffix.lower() in FULL_EXTS:found=[p.resolve()]
         else:parser.error('Unsupported full-duration audio extension: '+text)
+        for q in found:
+            if q not in seen:seen.add(q);paths.append(q)
     records=[];start=time.monotonic();failures=0;retained_time_bins=0;batch_limit_exceeded=False
     batch_limit_reason='Batch report time-bin budget exceeded ('+str(FULL_MAX_REPORT_TIME_BINS)+'); scan smaller batches. The offending and remaining inputs are ungraded'
-    for index,p in enumerate(sorted(paths,key=lambda q:str(q).casefold())):
+    for index,p in enumerate(paths if args.keep_input_order else sorted(paths,key=lambda q:str(q).casefold())):
+        if control is not None:control.wait()
         stat=p.stat();base={'path':str(p),'size':stat.st_size,'mtime_ns':stat.st_mtime_ns}
         if batch_limit_exceeded:
             result=dict(base,status='analysis_limit',quality=None,reason=batch_limit_reason);failures+=1
@@ -799,6 +870,7 @@ def full_spectrum_cli(argv):
                     name=hashlib.sha256(str(p).encode()).hexdigest()[:16]+'.npz'
                     np.savez_compressed(args.spectra_dir/name,power=_power,sample_rate=result['sample_rate'],bin_start_seconds=np.asarray(result['spectrum_bin_start_seconds']),bin_duration_seconds=np.asarray(result['spectrum_bin_duration_seconds']))
                     result['spectrum_file']=str(args.spectra_dir/name)
+            except _FullSpectrumControlClosed:raise
             except Exception as exc:
                 result=dict(base,status='integrity_error' if isinstance(exc,_AudioIntegrityError) else 'analysis_limit' if isinstance(exc,_FullSpectrumResourceLimit) else 'decode_error',quality=None,reason=str(exc));failures+=1
                 if isinstance(exc,_AudioIntegrityError):result.update(exc.details)
@@ -813,6 +885,7 @@ def full_spectrum_cli(argv):
         if temp.exists():raise FileExistsError('Temporary report already exists: '+str(temp))
         temp.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8');temp.replace(args.output)
     print('DONE '+json.dumps({'total':len(records),'counts':report['counts'],'output':str(args.output) if args.output else None}),flush=True)
+    if control is not None:control.finish()
     if failures:raise SystemExit(1)
 
 if __name__=='__main__':

@@ -14,7 +14,7 @@ and relevant real-track regressions, then regenerate this asset using
 `tools/export_canonical_source.py --scanner PATH --expected-sha256 REVIEWED_SHA`.
 Never edit the generated copy or change thresholds in the UI/adapter.
 Use `--full-spectrum` for all application grading. Bitrate is informational;
-HQ requires at least 30% of the whole decoded duration near 20 kHz.
+HQ requires at least 40% of the whole decoded duration at or above 20 kHz.
 
 No native decoder binaries, private regression inputs, or music are included.
 Project-owned scanner source is covered by the app's GPLv3-only license;

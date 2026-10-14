@@ -1,5 +1,7 @@
 # Local multi-format analysis
 
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+
 The applied local patch extends the same canonical scanner. It never implements
 another grader, modifies source music, or assigns quality based on bitrate or
 lossless encoding. Its spectral-power and metric functions, 30% HQ/MQ

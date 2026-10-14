@@ -21,7 +21,7 @@ The target format set is useful in DJ workflows, but successful analysis is not 
 
 ## One rule across formats
 
-Decoders supply native-rate PCM to the reviewed spectral measurement. They do not grade audio independently. HQ requires qualifying measurable signal near 20 kHz for at least 30% of the full decoded duration; otherwise MQ requires at least 30% near 18 kHz; otherwise LQ. All existing signal/activity thresholds, duration weighting and channel-power rules remain.
+Decoders supply native-rate PCM to the reviewed spectral measurement. They do not grade audio independently. HQ requires qualifying measurable signal at or above 20 kHz for at least 40% of the full decoded duration; otherwise MQ requires at least 40% at or above 18 kHz; otherwise LQ. All existing signal/activity thresholds, duration weighting and channel-power rules remain.
 
 Bitrate, container, codec, sample rate, bit depth and a lossless label are informational. FLAC/ALAC can preserve a previously band-limited or lossy source. Spectral coverage does not establish original bitrate, source authenticity, mastering quality or audible superiority.
 
@@ -29,7 +29,7 @@ Do not upsample to manufacture coverage. Low native rates retain their canonical
 
 ## Evidence and implementation bounds
 
-The canonical update passed 58 synthetic edge/format cases, its self-test, and exact real MP3 HQ/MQ/LQ metrics/time-bin/power regressions. The fixtures include equivalent 16/24-bit lossless wrappers, AAC compared with its independently decoded PCM, float PCM, silence/short/quiet cases, near-30% boundaries, native-rate/channel cases, inverse-phase stereo, changing-format rejection, evidence budgets and tail timing. See [local test results](LOCAL_TEST_RESULTS.md); fixture coverage is distinct from Python unit counts and installed-platform qualification.
+The canonical update passed 58 synthetic edge/format cases, its self-test, and exact real MP3 HQ/MQ/LQ metrics/time-bin/power regressions. The fixtures include equivalent 16/24-bit lossless wrappers, AAC compared with its independently decoded PCM, float PCM, silence/short/quiet cases, near-40% boundaries, native-rate/channel cases, inverse-phase stereo, changing-format rejection, evidence budgets and tail timing. See [local test results](LOCAL_TEST_RESULTS.md); fixture coverage is distinct from Python unit counts and installed-platform qualification.
 
 Implementation bounds are 8–192 kHz, at most eight channels, 24 hours/172,800 bins per track and 250,000 report time bins per canonical batch. Accepting a bound does not mean every codec/profile/layout has been tested. The default 32 MiB retained spectrum budget can omit the graph while the full grade continues. Resource-limit failures never become partial HQ/MQ/LQ results.
 

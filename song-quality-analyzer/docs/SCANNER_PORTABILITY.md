@@ -1,5 +1,7 @@
 # Canonical scanner integration
 
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+
 Historical migration record. Subsequent Windows real-track/independent-decoder validation passed; current multi-format and bundle status is recorded in [local test results](LOCAL_TEST_RESULTS.md). Pending statements below describe the initial patch stage, not the current complete qualification record. Native macOS and public-release qualification remain pending.
 
 This records the initial MP3 portability patch. The later

@@ -2,7 +2,7 @@
 
 (() => {
   const $ = (id) => document.getElementById(id);
-  const state = { token: "", config: null, root: "", sourceKind: "folder", tracks: [], records: new Map(), summaries: new Map(), filter: "All", inventoryIncomplete: false, busy: false, job: null, scanContext: null, reportJobId: null, reportTrackCount: 0, exporting: false, pollTimer: null, pollFailures: 0 };
+  const state = { token: "", config: null, root: "", sourceKind: "folder", tracks: [], records: new Map(), summaries: new Map(), filter: "All", sort: "title-asc", alphabetical: [], batchSeen: 0, progressJobId: null, progressStarted: 0, progressTimer: null, inventoryIncomplete: false, busy: false, job: null, scanContext: null, reportJobId: null, reportTrackCount: 0, exporting: false, pollTimer: null, pollFailures: 0 };
   const basename = (path) => String(path || "").split(/[\\/]/).pop() || "Untitled file";
   const string = (value) => value === null || value === undefined ? "" : String(value);
   const element = (tag, className, content) => {
@@ -19,10 +19,10 @@
     "Missing artist tag. Enter an artist before applying."
   ]);
   const analysisIssues = (values) => asMessages(values).filter((message) => !organizerIssues.has(message));
-  const selectedTracks = () => state.tracks.filter((track) => track.enabled !== false);
+  const selectedTracks = () => state.alphabetical.filter((track) => track.scan_valid && track.enabled !== false);
   const trackLimit = () => Number.isInteger(state.config && state.config.max_tracks_per_run) && state.config.max_tracks_per_run > 0 ? state.config.max_tracks_per_run : 50;
-  const bulkTracks = () => state.tracks.filter((track) => track.scan_valid).slice(0, trackLimit());
-  const nextBatchTracks = () => state.tracks.filter((track) => track.scan_valid && !state.summaries.has(string(track.id))).slice(0, trackLimit());
+  const bulkTracks = () => state.alphabetical.filter((track) => track.scan_valid);
+  const nextBatchTracks = () => state.alphabetical.filter((track) => track.scan_valid && !state.summaries.has(string(track.id)));
 
   try {
     state.token = new URLSearchParams(location.hash.slice(1)).get("token") || sessionStorage.getItem("song-quality-local-token") || "";
@@ -92,22 +92,26 @@
     const bulk = bulkTracks();
     const bulkSelected = bulk.length > 0 && count === bulk.length && bulk.every((track) => track.enabled !== false);
     $("scan-button").disabled = state.busy || !state.config;
-    $("demo-button").disabled = state.busy || !state.config;
     $("browse-button").disabled = state.busy || !state.config;
     $("browse-file-button").disabled = state.busy || !state.config;
     const next = nextBatchTracks();
     $("next-batch-button").disabled = state.busy || !next.length || !state.config;
-    $("next-batch-button").textContent = next.length ? "Select next " + next.length + " unmeasured" : "All readable tracks attempted";
+    $("next-batch-button").textContent = next.length ? "Select remaining " + next.length : "All readable tracks attempted";
     $("root-path").disabled = state.busy;
-    $("audit-button").disabled = state.busy || !count || count > trackLimit() || !state.config || state.config.scanner_available === false || $("root-path").value.trim() !== state.root;
+    $("audit-button").disabled = state.busy || !count || !state.config || state.config.scanner_available === false || $("root-path").value.trim() !== state.root;
     $("select-all").disabled = state.busy || !bulk.length;
     $("select-all").checked = bulkSelected;
     $("select-all").indeterminate = count > 0 && !bulkSelected;
-    $("select-all").title = "Select the first " + trackLimit() + " tracks with readable audio metadata";
-    $("selection-summary").textContent = count === state.tracks.length ? count + " track" + (count === 1 ? "" : "s") + " selected" : bulkSelected ? "First " + count + " valid tracks selected" : count + " of " + state.tracks.length + " tracks selected";
+    $("select-all").title = "Select all tracks with readable audio metadata";
+    $("selection-summary").textContent = count === state.tracks.length ? count + " track" + (count === 1 ? "" : "s") + " selected" : bulkSelected ? count + " readable tracks selected" : count + " of " + state.tracks.length + " tracks selected";
     $("export-button").disabled = state.busy || state.exporting || !state.reportJobId;
     document.querySelectorAll(".track-select").forEach((input) => { input.disabled = state.busy; });
     $("cancel-button").disabled = !state.job || state.job.cancelling;
+    $("cancel-button").textContent = state.job && state.job.kind === "audit" ? state.job.cancelling ? "Stopping…" : "Stop" : "Cancel";
+    $("pause-button").hidden = !state.job || state.job.kind !== "audit";
+    $("pause-button").disabled = !state.job || state.job.cancelling || state.job.pauseUpdating;
+    $("pause-button").textContent = state.job && state.job.pauseRequested ? "Resume" : "Pause";
+    $("pause-button").setAttribute("aria-pressed", string(!!(state.job && state.job.pauseRequested)));
     $("rail-status").textContent = state.job ? state.job.kind === "scan" ? "Reading music" : "Analyzing tracks" : count ? count + " selected" : "Ready to start";
   }
 
@@ -122,7 +126,7 @@
     row.append(element("span", "", label));
     const bar = element("div", "coverage-bar" + (showThreshold ? " threshold" : ""));
     bar.setAttribute("role", "img");
-    bar.setAttribute("aria-label", label + " coverage " + (value === null ? "unavailable" : formatCoverage(value)) + (showThreshold ? "; HQ threshold 30 percent" : ""));
+    bar.setAttribute("aria-label", label + " coverage " + (value === null ? "unavailable" : formatCoverage(value)) + (showThreshold ? "; HQ threshold 40 percent" : ""));
     const fill = element("span", "coverage-fill");
     fill.style.width = (value === null ? 0 : value) + "%";
     bar.append(fill);
@@ -134,8 +138,8 @@
 
   function formatCoverage(value) {
     if (value === null || !Number.isFinite(value)) return "—";
-    const rounded = value.toFixed(Math.abs(value - 30) < .1 ? 3 : 1);
-    if (value < 30 && Number(rounded) >= 30) return "<30%";
+    const rounded = value.toFixed(Math.abs(value - 40) < .1 ? 3 : 1);
+    if (value < 40 && Number(rounded) >= 40) return "<40%";
     if (value > 0 && Number(rounded) === 0) return "<0.1%";
     return rounded + "%";
   }
@@ -178,7 +182,7 @@
   function coverageMetrics(record) {
     const grid = element("div", "evidence-metrics");
     const duration = Number(record.duration_seconds);
-    [["20 kHz coverage", "coverage_20khz"], ["18 kHz coverage", "coverage_18khz"]].forEach(([label, key]) => {
+    [["20 kHz+ coverage", "coverage_20khz"], ["18 kHz+ coverage", "coverage_18khz"]].forEach(([label, key]) => {
       const value = coverageValue(record, key);
       const card = element("div", "evidence-metric");
       card.append(element("label", "", label), element("strong", "", formatCoverage(value)));
@@ -307,18 +311,18 @@
         button.focus();
       }
     });
-    content.append(element("h3", "", "20 kHz signal across the track"));
+    content.append(element("h3", "", "20 kHz+ signal across the track"));
     content.append(element("p", "", "Measured windows for " + (track.title || basename(track.source_path)) + ". The full track duration is the coverage denominator."));
     content.append(coverageMetrics(record));
     const bins = timelineBins(record);
     if (bins.length) {
       const timeline = element("div", "timeline-track");
       timeline.setAttribute("role", "img");
-      timeline.setAttribute("aria-label", "Measured 20 kHz timeline. " + bins.filter((bin) => bin.covered).length + " of " + bins.length + " displayed windows contain measurable signal.");
+      timeline.setAttribute("aria-label", "Measured 20 kHz+ timeline. " + bins.filter((bin) => bin.covered).length + " of " + bins.length + " displayed windows contain measurable signal.");
       bins.forEach((bin) => {
         const mark = element("span", "timeline-bin" + (bin.covered ? " covered" : ""));
         if (Number.isFinite(bin.start) && Number.isFinite(bin.end) && bin.end > bin.start) mark.style.flexGrow = string(bin.end - bin.start);
-        mark.title = formatSeconds(bin.start) + "–" + formatSeconds(bin.end) + ": " + (bin.covered ? "measurable 20 kHz signal" : "below the signal threshold");
+        mark.title = formatSeconds(bin.start) + "–" + formatSeconds(bin.end) + ": " + (bin.covered ? "measurable 20 kHz+ signal" : "below the signal threshold");
         timeline.append(mark);
       });
       const scale = element("div", "timeline-meta");
@@ -367,7 +371,8 @@
   function renderTracks() {
     const fragment = document.createDocumentFragment();
     let visible = 0;
-    state.tracks.forEach((track, index) => {
+    const view = window.SpectracraftLibraryView.orderedTracks(state.tracks, state.sort);
+    view.forEach(({ track, index }) => {
       const fullRecord = state.records.get(string(track.id));
       const record = fullRecord || state.summaries.get(string(track.id));
       const matches = state.filter === "All" || state.filter === "Unmeasured" && !record || state.filter === "Error" && record && !!record.error || ["HQ", "MQ", "LQ"].includes(state.filter) && record && !record.error && record.quality === state.filter;
@@ -380,10 +385,8 @@
       checkbox.checked = track.enabled !== false;
       checkbox.setAttribute("aria-label", "Analyze " + (track.title || basename(track.source_path)));
       checkbox.addEventListener("change", () => {
-        if (checkbox.checked && track.enabled === false && selectedTracks().length >= trackLimit()) {
+        if (checkbox.checked && !track.scan_valid) {
           checkbox.checked = false;
-          setAlert("", "Local alpha limit reached", "Each run supports up to " + trackLimit() + " tracks. Deselect a track before selecting another, or analyze another batch after this run.");
-          updateControls();
           return;
         }
         track.enabled = checkbox.checked;
@@ -408,9 +411,9 @@
       gradeCell.append(element("div", "grade-origin", record ? record.error ? "Analysis failed" : "Measured result" : track.quality ? "Existing label" : "Not analyzed"));
       const coverageCell = element("td");
       if (record && !record.error) {
-        coverageCell.append(coverageRow("20 kHz", coverageValue(record, "coverage_20khz"), true), coverageRow("18 kHz", coverageValue(record, "coverage_18khz"), false));
-        const nearBoundary = ["coverage_20khz", "coverage_18khz"].map((key) => coverageValue(record, key)).some((value) => value !== null && value >= 29.9 && value < 30);
-        if (nearBoundary) coverageCell.append(element("div", "boundary-note", "Just below the 30% boundary. The measured grade is unchanged."));
+        coverageCell.append(coverageRow("20 kHz+", coverageValue(record, "coverage_20khz"), true), coverageRow("18 kHz+", coverageValue(record, "coverage_18khz"), false));
+        const nearBoundary = ["coverage_20khz", "coverage_18khz"].map((key) => coverageValue(record, key)).some((value) => value !== null && value >= 39.9 && value < 40);
+        if (nearBoundary) coverageCell.append(element("div", "boundary-note", "Just below the 40% boundary. The measured grade is unchanged."));
       } else {
         coverageCell.append(element("div", "coverage-empty", record && record.error ? "Measurement unavailable" : "Run a full-track analysis"));
       }
@@ -476,22 +479,35 @@
   }
 
   function resetScanButton() {
-    const arrow = element("span", "", "→");
-    arrow.setAttribute("aria-hidden", "true");
-    $("scan-button").replaceChildren(document.createTextNode("Read folder or file "), arrow);
+    $("scan-button").replaceChildren(document.createTextNode("Add music "), element("span", "", "＋"));
+  }
+
+  function closeSourceMenu() {
+    $("source-menu").hidden = true;
+    $("scan-button").setAttribute("aria-expanded", "false");
+  }
+
+  async function loadMusic(path, force = false) {
+    path = string(path).trim();
+    if (path.startsWith('"') && path.endsWith('"')) path = path.slice(1, -1);
+    if (!path || state.busy || !state.config || (!force && path === state.root)) return;
+    closeSourceMenu();
+    $("root-path").value = path;
+    await scanFolder(path);
   }
 
   function acceptScan(result, root) {
     state.root = result.root || root;
     state.sourceKind = result.source_kind === "file" ? "file" : "folder";
     state.inventoryIncomplete = !!result.truncated;
-    let selected = 0;
     state.tracks = (result.tracks || []).map((track) => {
       const scanValid = track.enabled !== false;
-      const enabled = scanValid && selected < trackLimit();
-      if (enabled) selected += 1;
-      return { ...track, scan_valid: scanValid, enabled };
+      return { ...track, scan_valid: scanValid, enabled: scanValid };
     });
+    state.alphabetical = window.SpectracraftLibraryView.analysisOrder(state.tracks);
+    state.batchSeen = 0;
+    state.sort = "title-asc";
+    $("track-sort").value = "title-asc";
     state.records.clear();
     state.summaries.clear();
     state.filter = "All";
@@ -499,11 +515,11 @@
     state.reportJobId = null;
     state.reportTrackCount = 0;
     $("root-path").value = state.root;
-    $("review-status").textContent = state.tracks.length ? state.tracks.filter((track) => track.scan_valid).length > trackLimit() ? "First " + trackLimit() + " readable tracks selected." : state.sourceKind === "file" ? "Your file is ready. Analyze it to see the evidence." : "Your folder is ready. Choose tracks and analyze." : "No supported audio files found.";
-    $("review-status-detail").textContent = state.tracks.length ? state.sourceKind === "file" ? "Only this file was read; other songs in its folder were not scanned. Existing HQ labels are checked again." : "Local alpha: up to " + trackLimit() + " tracks per run. Existing HQ labels are checked again." : "Choose a folder or file in one of the supported formats.";
-    $("analysis-summary").textContent = "Local alpha · Up to " + trackLimit() + " tracks per run";
+    $("review-status").textContent = state.tracks.length ? state.tracks.filter((track) => track.scan_valid).length > trackLimit() ? "All readable tracks selected. Batches continue automatically." : state.sourceKind === "file" ? "Your file is ready. Analyze it to see the evidence." : "Your folder is ready. Choose tracks and analyze." : "No supported audio files found.";
+    $("review-status-detail").textContent = state.tracks.length ? state.sourceKind === "file" ? "Only this file was read; other songs in its folder were not scanned. Existing HQ labels are checked again." : "Loaded " + state.tracks.length + " tracks. Selected tracks process automatically in title A–Z batches of " + trackLimit() + "." : "Choose a folder or file in one of the supported formats.";
+    $("analysis-summary").textContent = "Automatic batches of " + trackLimit() + " · Title A–Z";
     $("review-eyebrow").textContent = "02 / ANALYZE & INSPECT";
-    $("review-description").textContent = "Choose up to " + trackLimit() + " tracks per run. Existing labels stay separate from measured results.";
+    $("review-description").textContent = "Selected tracks process in title A–Z order. Batches of " + trackLimit() + " continue automatically; Pause/Resume and Stop stay available.";
     $("report-detail").textContent = "Your report is ready after an analysis completes.";
     setStep(state.tracks.length ? "analyze" : "scan");
     const warnings = analysisIssues(result.warnings);
@@ -542,10 +558,14 @@
     updateControls();
   }
 
-  function mergeResults(result) {
+  function mergeResults(result, summaries = []) {
     const records = Array.isArray(result && result.records) ? result.records : [];
     if (records.length) state.records.clear();
     const pathIds = new Map(state.tracks.map((track) => [string(track.source_path), string(track.id)]));
+    summaries.forEach(record => {
+      const id = record.id !== undefined ? string(record.id) : pathIds.get(string(record.source_path));
+      if (id !== undefined) state.summaries.set(id, record);
+    });
     records.forEach((record) => {
       const id = record.id !== undefined ? string(record.id) : pathIds.get(string(record.source_path || record.path));
       if (id !== undefined) {
@@ -565,22 +585,40 @@
     const values = [...state.summaries.values()];
     const grades = ["HQ", "MQ", "LQ"].map((grade) => values.filter((record) => !record.error && record.quality === grade).length + " " + grade);
     const failures = values.filter((record) => record.error).length;
-    return values.length ? grades.join(" · ") + (failures ? " · " + failures + " failed" : "") + " · Limit " + trackLimit() + " per run" : "No completed measurements yet. Limit " + trackLimit() + " per run.";
+    return values.length ? grades.join(" · ") + (failures ? " · " + failures + " failed" : "") + " · Latest batch holds up to " + trackLimit() + " tracks" : "No completed measurements yet. Larger folders are analyzed in batches of " + trackLimit() + ".";
+  }
+
+  function stopProgressClock() {
+    clearInterval(state.progressTimer);
+    state.progressTimer = null;
+    state.progressJobId = null;
   }
 
   function showProgress(job) {
+    const key = job.id || state.job && state.job.id || job.kind;
+    if (state.progressJobId !== key) {
+      stopProgressClock();
+      state.progressJobId = key;
+      state.progressStarted = performance.now();
+      const tick = () => { $("job-elapsed").textContent = formatSeconds((performance.now() - state.progressStarted) / 1000) + " elapsed"; };
+      tick();
+      state.progressTimer = setInterval(tick, 1000);
+    }
+
     const progress = job.progress || {};
     const scanning = job.kind === "scan" || state.job && state.job.kind === "scan";
     const done = Math.max(0, Number(progress.done) || 0);
     const total = Math.max(0, Number(progress.total) || 0);
     $("job-panel").hidden = false;
-    $("job-title").textContent = scanning ? "Reading your music…" : "Analyzing full tracks…";
+    $("job-percentage").textContent = total ? Math.floor(Math.min(done, total) / total * 100) + "% processed" : "Loading…";
+    $("job-title").textContent = scanning ? "Reading your music…" : progress.paused ? "Analysis paused" : state.job && state.job.pauseRequested ? "Pausing at a safe point…" : "Analyzing full tracks…";
     $("job-message").textContent = progress.message || (scanning ? "Reading local audio metadata." : "Measuring spectral coverage across each selected track.");
     $("job-progress").max = total || 1;
-    if (total) $("job-progress").value = Math.min(done, total);
+    if (total && (done > 0 || progress.paused)) $("job-progress").value = Math.min(done, total);
     else $("job-progress").removeAttribute("value");
     $("job-progress-label").textContent = scanning ? total ? done + " of " + total + " files checked. You can cancel this read." : done ? done + " files checked. Reading music…" : "Reading your selection. You can cancel this read." : total ? done + " of " + total + " tracks processed. All selected HQ labels are checked again." : "Starting the full-track analysis…";
-    $("rail-status").textContent = (scanning ? "Reading" : "Analyzing") + (total ? " " + done + "/" + total : " music");
+    if (!scanning && progress.batch_count) $("job-progress-label").textContent = done + " of " + total + " tracks processed · Batch " + progress.batch_index + " of " + progress.batch_count + " · Title A–Z";
+    $("rail-status").textContent = (scanning ? "Reading" : progress.paused ? "Paused" : "Analyzing") + (total ? " " + done + "/" + total : " music");
   }
 
   async function finishJob(job) {
@@ -590,7 +628,8 @@
       state.job = null;
       state.scanContext = null;
       state.pollFailures = 0;
-      $("job-panel").hidden = true;
+      stopProgressClock();
+    $("job-panel").hidden = true;
       $("cancel-button").textContent = "Cancel";
       resetScanButton();
       if (job.status === "complete") acceptScan(job.result || {}, context.root);
@@ -603,11 +642,12 @@
       updateControls();
       return;
     }
-    const records = mergeResults(job.result || {});
+    const records = mergeResults(job.result || {}, job.summaries || []);
     const status = job.status;
     state.busy = false;
     state.job = null;
     state.pollFailures = 0;
+    stopProgressClock();
     $("job-panel").hidden = true;
     $("cancel-button").textContent = "Cancel";
     renderTracks();
@@ -616,16 +656,16 @@
       state.reportJobId = job.id;
       state.reportTrackCount = records.length;
       $("review-status").textContent = "Analysis complete. Your music is unchanged.";
-      $("review-status-detail").textContent = "The downloadable report contains " + records.length + " track result" + (records.length === 1 ? "" : "s") + " from this run.";
+      $("review-status-detail").textContent = (job.result.selected_total || records.length) + " selected tracks finished in " + (job.result.completed_batches || 1) + " batch(es). The report and detailed evidence cover the latest " + records.length + ".";
       $("review-eyebrow").textContent = "02 / MEASURED RESULTS";
       $("review-description").textContent = "Coverage is measured against the full track duration. Open the evidence to see more.";
       $("report-detail").textContent = records.length + " result" + (records.length === 1 ? "" : "s") + " in the latest run · Machine-specific paths removed; relative filenames included.";
-      const failures = records.filter((record) => record.error).length;
+      const failures = (job.summaries || records).filter((record) => record.error).length;
       if (failures) setAlert("", "Analysis completed with track errors", failures + " track" + (failures === 1 ? " could" : "s could") + " not be measured. See the status column and report for details.");
       else $("alerts").replaceChildren();
       setStep("results");
     } else if (status === "cancelled") {
-      $("review-status").textContent = "Analysis cancelled.";
+      $("review-status").textContent = "Analysis stopped.";
       $("review-status-detail").textContent = records.length ? records.length + " results from the stopped run are shown. No files were changed." : state.records.size ? "Previous completed measurements are still shown. This run made no changes to your files." : "No files were changed. You can select tracks and try again.";
       setAlert("", "Analysis stopped", "Your audio and metadata are unchanged.");
       setStep(records.length ? "results" : "analyze");
@@ -635,6 +675,12 @@
       setAlert("error", "Analysis failed", job.error || "The local analyzer stopped before it could finish.");
       setStep("analyze");
     }
+    if (status !== "complete" && job.completed_batches > 0 && records.length) {
+      state.reportJobId = job.id;
+      state.reportTrackCount = records.length;
+      $("review-status-detail").textContent = (job.result.completed_tracks || 0) + " tracks retained from completed batches. The interrupted batch can be selected again.";
+      $("report-detail").textContent = records.length + " results from the latest completed batch are available.";
+    }
     updateControls();
   }
 
@@ -642,10 +688,18 @@
     if (!state.job) return;
     const currentId = state.job.id;
     try {
-      const job = await api("/api/jobs/" + encodeURIComponent(currentId));
+      const job = await api("/api/jobs/" + encodeURIComponent(currentId) + "?after_batch=" + state.batchSeen);
       if (!state.job || state.job.id !== currentId) return;
       state.pollFailures = 0;
+      state.job.pauseRequested = !!job.pause_requested;
+      if (job.completed_batches > state.batchSeen) {
+        mergeResults(job.result || {}, job.summaries || []);
+        state.batchSeen = job.completed_batches;
+        renderTracks();
+        $("analysis-summary").textContent = resultsSummary();
+      }
       showProgress(job);
+      updateControls();
       if (["complete", "failed", "cancelled"].includes(job.status)) {
         await finishJob(job);
         return;
@@ -656,7 +710,8 @@
         state.job = null;
         state.reportJobId = null;
         state.scanContext = null;
-        $("job-panel").hidden = true;
+        stopProgressClock();
+    $("job-panel").hidden = true;
         $("cancel-button").textContent = "Cancel";
         resetScanButton();
         $("review-status").textContent = "This local run is no longer available.";
@@ -675,10 +730,32 @@
 
   $("scan-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!state.busy) scanFolder($("root-path").value.trim());
+    if (!state.busy) loadMusic($("root-path").value, true);
   });
 
   $("root-path").addEventListener("input", updateControls);
+  $("root-path").addEventListener("change", () => loadMusic($("root-path").value));
+  $("root-path").addEventListener("paste", () => setTimeout(() => loadMusic($("root-path").value), 0));
+  $("track-sort").addEventListener("change", () => { state.sort = $("track-sort").value; renderTracks(); });
+  $("scan-button").addEventListener("click", () => {
+    const bridge = window.pywebview && window.pywebview.api;
+    if (!bridge) { $("root-path").focus(); return; }
+    const open = $("source-menu").hidden;
+    $("source-menu").hidden = !open;
+    $("scan-button").setAttribute("aria-expanded", string(open));
+    if (open) $("browse-file-button").focus();
+  });
+  document.addEventListener("click", (event) => { if (!event.target.closest(".music-picker")) closeSourceMenu(); });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !$("source-menu").hidden) { closeSourceMenu(); $("scan-button").focus(); } });
+  const dropZone = $("music-drop-zone");
+  document.addEventListener("dragover", (event) => { event.preventDefault(); });
+  document.addEventListener("drop", (event) => {
+    event.preventDefault();
+    dropZone.classList.remove("drag-active");
+    if (!(window.pywebview && window.pywebview.api)) setAlert("", "Open the desktop app to drop music", "The browser cannot read full local paths. Paste a folder or file path instead.");
+  });
+  dropZone.addEventListener("dragenter", () => dropZone.classList.add("drag-active"));
+  dropZone.addEventListener("dragleave", (event) => { if (!dropZone.contains(event.relatedTarget)) dropZone.classList.remove("drag-active"); });
 
   $("theme-toggle").addEventListener("click", async () => {
     if (!state.config || !window.ResetLabCraftTheme) return;
@@ -705,26 +782,6 @@
     $("review-status").textContent = ids.size + " unmeasured tracks selected. Ready to analyze.";
   });
 
-  $("demo-button").addEventListener("click", async () => {
-    if (state.busy) return;
-    state.busy = true;
-    $("demo-button").textContent = "Preparing demo…";
-    updateControls();
-    try {
-      const result = await api("/api/demo");
-      if (!result.root) throw new Error("The demo did not return a folder path.");
-      $("root-path").value = result.root;
-      setAlert("success", "A safe demo is ready", "These synthetic test tracks are in a separate demo folder. Select Analyze full tracks to measure them.");
-      await scanFolder(result.root, true);
-    } catch (error) {
-      setAlert("error", "The demo could not be prepared", errorMessage(error));
-    } finally {
-      if (!state.job) state.busy = false;
-      $("demo-button").textContent = "Explore the demo ↗";
-      updateControls();
-    }
-  });
-
   $("select-all").addEventListener("change", () => {
     const select = $("select-all").checked;
     const ids = new Set(bulkTracks().map((track) => string(track.id)));
@@ -733,8 +790,9 @@
   });
 
   $("audit-button").addEventListener("click", async () => {
-    if (state.busy || !selectedTracks().length || selectedTracks().length > trackLimit()) return;
+    if (state.busy || !selectedTracks().length) return;
     state.busy = true;
+    state.batchSeen = 0;
     $("alerts").replaceChildren();
     updateControls();
     try {
@@ -754,6 +812,22 @@
       setAlert("error", "The analysis could not start", errorMessage(error));
       updateControls();
     }
+  });
+
+  $("pause-button").addEventListener("click", async () => {
+    if (!state.job || state.job.kind !== "audit" || state.job.cancelling || state.job.pauseUpdating) return;
+    const job = state.job;
+    const wanted = !job.pauseRequested;
+    job.pauseUpdating = true;
+    updateControls();
+    try {
+      await api("/api/pause", { job_id: job.id, paused: wanted });
+      if (state.job === job) {
+        job.pauseRequested = wanted;
+        $("job-title").textContent = wanted ? "Pausing at a safe point…" : "Resuming full-track analysis…";
+      }
+    } catch (error) { setAlert("error", "The pause state could not be changed", errorMessage(error)); }
+    finally { job.pauseUpdating = false; updateControls(); }
   });
 
   $("cancel-button").addEventListener("click", async () => {
@@ -825,44 +899,46 @@
     } finally { state.exporting = false; updateControls(); }
   });
 
+  let dropPolling = false;
   function setupDesktopBridge() {
     const bridge = window.pywebview && window.pywebview.api;
     $("browse-button").hidden = !bridge || typeof bridge.choose_folder !== "function";
     $("browse-file-button").hidden = !bridge || typeof bridge.choose_file !== "function";
     if (bridge && typeof bridge.save_report === "function") $("export-button").replaceChildren(document.createTextNode("Save JSON report "), element("span", "", "↓"));
+    if (bridge && typeof bridge.take_drop === "function" && !dropPolling) {
+      dropPolling = true;
+      const pollDrop = async () => {
+        try {
+          const status = await bridge.drop_status();
+          $("drop-hint").textContent = status.available ? "Drop one audio file or folder here, or use Add music. It loads automatically." : "Use Add music to choose a file or folder. Selection loads automatically.";
+          const drop = await bridge.take_drop();
+          if (drop && drop.error) setAlert("", "Music could not be added", drop.error);
+          else if (drop && drop.path) {
+            if (state.busy) setAlert("", "An operation is already running", "Wait for it to finish or cancel before adding music.");
+            else await loadMusic(drop.path, true);
+          }
+        } catch (_) { /* Window shutdown or reload can interrupt the native bridge. */ }
+        setTimeout(pollDrop, 600);
+      };
+      pollDrop();
+    }
   }
 
-  $("browse-button").addEventListener("click", async () => {
+  async function pickMusic(kind) {
     const bridge = window.pywebview && window.pywebview.api;
-    if (state.busy || !bridge || typeof bridge.choose_folder !== "function") return;
+    const method = kind === "folder" ? "choose_folder" : "choose_file";
+    if (state.busy || !bridge || typeof bridge[method] !== "function") return;
+    closeSourceMenu();
+    let path;
     state.busy = true;
     updateControls();
-    try {
-      const path = await bridge.choose_folder();
-      if (typeof path === "string" && path.trim()) $("root-path").value = path;
-    } catch (error) {
-      setAlert("error", "The folder picker could not open", errorMessage(error));
-    } finally {
-      state.busy = false;
-      updateControls();
-    }
-  });
-
-  $("browse-file-button").addEventListener("click", async () => {
-    const bridge = window.pywebview && window.pywebview.api;
-    if (state.busy || !bridge || typeof bridge.choose_file !== "function") return;
-    state.busy = true;
-    updateControls();
-    try {
-      const path = await bridge.choose_file();
-      if (typeof path === "string" && path.trim()) $("root-path").value = path;
-    } catch (error) {
-      setAlert("error", "The file picker could not open", errorMessage(error));
-    } finally {
-      state.busy = false;
-      updateControls();
-    }
-  });
+    try { path = await bridge[method](); }
+    catch (error) { setAlert("error", "Music could not be selected", errorMessage(error)); }
+    finally { state.busy = false; updateControls(); }
+    if (typeof path === "string" && path.trim()) await loadMusic(path, true);
+  }
+  $("browse-button").addEventListener("click", () => pickMusic("folder"));
+  $("browse-file-button").addEventListener("click", () => pickMusic("file"));
 
   function setupScrollExperience() {
     if (typeof IntersectionObserver !== "function") return;
@@ -914,7 +990,7 @@
       }
       if (window.ResetLabCraftScroll) window.ResetLabCraftScroll.setMode("smooth");
       $("theme-toggle").disabled = false;
-      $("review-description").textContent = "Choose up to " + trackLimit() + " tracks per run, including any already labeled HQ.";
+      $("review-description").textContent = "Large folders are welcome. Selected tracks run automatically in A–Z batches of " + trackLimit() + "; existing HQ labels are checked again.";
       $("root-path").value = state.config.default_root || "";
       $("app-version").textContent = state.config.version ? "v" + state.config.version : "";
       const formats = Array.isArray(state.config.supported_formats) ? state.config.supported_formats.map((format) => typeof format === "string" ? format : format.name || format.label || "").filter(Boolean) : [];
@@ -925,6 +1001,18 @@
       $("scanner-status").replaceChildren(element("span", "status-dot" + (available ? "" : " warning")), element("span", "", available ? "Analyzer ready" : "Analyzer unavailable"));
       if (typeof state.config.quality_rule === "string" && state.config.quality_rule) $("quality-rule").textContent = state.config.quality_rule;
       if (state.config.mq_lq_rule) $("mq-lq-rule").textContent = state.config.mq_lq_rule;
+      if (state.config.active_job) {
+        const active = await api("/api/jobs/" + encodeURIComponent(state.config.active_job.id) + "?with_inventory=1");
+        if (active.kind === "audit") {
+          acceptScan({ root: active.source_root, source_kind: active.source_kind, tracks: active.inventory || [] }, active.source_root);
+          const ids = new Set((active.selected_ids || []).map(string));
+          state.tracks.forEach(track => { track.enabled = ids.has(string(track.id)); });
+          renderTracks();
+        } else state.scanContext = { root: active.source_root };
+        state.busy = true;
+        state.job = { id: active.id, kind: active.kind, pauseRequested: !!active.pause_requested, cancelling: false };
+        pollJob();
+      }
       if (!available) setAlert("error", "The analyzer is unavailable", state.config.scanner_error || "The local launcher could not find the required analysis tools. Review the setup instructions before analyzing tracks.");
     } catch (error) {
       $("scanner-status").replaceChildren(element("span", "status-dot warning"), element("span", "", "Connection needed"));

@@ -2,13 +2,21 @@
 
 ## Analyze a folder or one file
 
-1. Use Choose folder or Choose file in the desktop app. In the development browser, paste the full path to either.
-2. Click Read folder or file. A file selection reads only that file; a folder lets you select up to 50 tracks. Existing HQ filenames are checked again.
-3. Analyze selected tracks. Wait for the complete result or use Cancel.
+1. Use **Add music**, then choose **Audio file** or **Music folder**. The desktop also has a native drop receiver for one file or folder; actual OS drag gestures remain part of beta qualification. In the development browser, paste a full path or type it and press Enter.
+2. Selection loads metadata automatically. A file selection loads only that file; folders larger than 50 songs are supported. Existing HQ filenames are checked again during analysis.
+3. Analyze selected tracks. They run in title A–Z order through automatic batches of 50; no further clicks are needed between batches.
 4. Open View evidence to inspect qualifying seconds, the timeline and the spectrum.
 5. Save the JSON report for the latest completed batch.
 
-For larger folders, use Select next batch. The folder summary accumulates measured grades within this inventory. Detailed evidence/report export is retained for the latest batch to bound memory. Reading a folder or file again resets the summary. A single-file result is labeled as a file score.
+The folder summary accumulates measured grades across completed batches within this inventory. Detailed evidence/report export is retained for the latest completed batch to bound memory. Reading a folder or file again resets the summary. A single-file result is labeled as a file score.
+
+**50 is the analysis batch size, not a selection or folder-size limit.** A 103-track selection runs as 50, 50 and 3 automatically. Up to 10,000 candidates are inventoried; incomplete inventories are marked. Use **Sort** for title A–Z, title Z–A or artist A–Z. Display sorting and grade filters preserve selections and the folder score; analysis order remains title A–Z.
+
+During analysis a progress panel shows the current track, overall processed/selected counts, batch number, percentage and elapsed time. Progress advances when whole tracks finish; it is not a per-second decoding percentage or a completion-time estimate. The initial bar is indeterminate while the first track is processed. On very short windows the panel scrolls with the page so its controls remain reachable. Final source-file verification runs before results are accepted.
+
+Use **Pause** to hold the current decoding position at a safe point, then **Resume** to continue. Wait for the Paused confirmation. Refreshing the browser reconnects to an active or paused run while the app/server stays open; closing the app ends processing. Processing uses the CPU, without GPU acceleration.
+
+Use **Stop** to end the run. Completed batches stay in the folder summary and the latest completed batch can still be exported. The interrupted batch does not return partial grades; use **Select remaining** to retry unattempted tracks. A new run is a new analysis, rather than a saved continuation after closing the app.
 
 ## Understand the result
 
@@ -24,7 +32,7 @@ The sun/moon button near the upper right switches Light/Dark and saves the choic
 
 ## Your files and reports
 
-The app reads songs without changing audio, names, tags, artwork, cues, grids or playlists. Reports remove machine-specific absolute/cache paths and free-form decoder errors. Relative filenames and technical results remain; review them before sharing. Private diagnostics and spectrum caches stay on this computer. New caches keep the latest three finished owned analyses; export reports you want to keep. Active jobs, legacy/unmarked folders and unexpected content are preserved, so they can still take disk space. See [Privacy](PRIVACY.md).
+The app reads songs without changing audio, names, tags, artwork, cues, grids or playlists. Reports remove machine-specific absolute/cache paths and free-form decoder errors. Relative filenames and technical results remain; review them before sharing. Private diagnostics and spectrum caches stay on this computer. New caches keep the latest three finished owned batches; export reports you want to keep. Active jobs, legacy/unmarked folders and unexpected content are preserved, so they can still take disk space. See [Privacy](PRIVACY.md).
 
 If a decoder or folder is unavailable, check [Installation](INSTALLATION.md). If an error persists, save a sanitized report and describe the platform, format and action; keep private diagnostics/session links out of public issues.
 

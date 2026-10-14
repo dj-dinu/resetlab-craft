@@ -6,32 +6,43 @@ Read a music folder or one audio file, measure complete tracks, inspect the spec
 
 ## Current status
 
-Private source preview, October 12, 2026. **A public release is not yet qualified.**
-No downloadable installer is included. The private beta preparation uses this
-source snapshot; native Windows checks and dependency redistribution review
-must pass before sharing a packaged build with testers.
+**Windows public beta preparation: 0.1.0-alpha.5.** User beta feedback is
+positive. This snapshot prepares a portable Windows x64 ZIP, corresponding
+source, dependency materials and checksums. Download assets become available
+on [GitHub Releases](https://github.com/dj-dinu/resetlab-craft/releases) when
+the beta is published. This is an early beta, with known qualification gaps.
 
 | Platform | Actual evidence |
 | --- | --- |
-| Windows x64 | Source tests, browser workflow and packaged analyzer worker validated. Native window/dialog, clean-machine and shutdown checks still pending. |
+| Windows x64 | Beta target. User testing reported good; source, browser and packaged worker checks pass. Clean-machine installation, native gestures/display scaling/shutdown and runtime traffic capture are not fully qualified. |
 | macOS Intel / Apple Silicon | Native source entry point exists; neither architecture has been built or tested natively. No Mac installer is available. |
 | Linux | Deferred and untested. Consider after Windows and Mac qualification. |
 
 ## Start here
 
 1. Follow [Installation](docs/INSTALLATION.md) for the current local Windows build or developer setup.
-2. Choose a folder (up to 50 selected tracks per batch) or one audio file.
-3. Analyze, inspect results and save the latest completed batch.
+2. Add music using one control for a folder or audio file; metadata loads automatically. Select the tracks you want to analyze.
+3. Analyze: selected tracks run in title A–Z order through automatic batches of 50. Pause/Resume holds your place; Stop retains completed batches. Inspect results and save the latest completed batch.
 
 The [short user guide](docs/USER_GUIDE.md) explains folder scores, grade filters and errors. Use the sun/moon button near the upper right for appearance. Scrolling is Smooth by default and respects reduced motion, keyboard, fine gestures and nested results.
+
+Title/artist sorting preserves selections and scores. Analysis has a sticky progress panel with current-track context, processed counts and elapsed time. The native drop receiver keeps the strict CSP; actual Windows/Mac gestures remain unqualified. The in-app demo was removed after feedback; synthetic fixtures remain developer tests only.
+
+The desktop window can shrink to 420 × 360 logical pixels for split-screen
+work. At narrow widths, the results table scrolls inside its panel while
+the page and controls fit the window.
 
 ## What the grade means
 
 Supported candidates: MP3, WAV, AIFF, FLAC, AAC and ALAC; actual codecs/containers are checked.
 
-- HQ: measurable signal near 20 kHz for at least 30% of the complete decoded duration.
-- MQ: otherwise, at least 30% near 18 kHz.
+- HQ: measurable signal at or above 20 kHz for at least 40% of the complete decoded duration.
+- MQ: otherwise, at least 40% at or above 18 kHz.
 - LQ: otherwise.
+
+Alpha.3 uses the updated 40% rule and measures FFT bins at or above each target.
+Earlier reports retain their original results; reanalyze to apply the new rule.
+See [Quality rules](docs/QUALITY_RULES.md) for the measurement details.
 
 Bitrate and lossless encoding do not determine the grade. These are spectral coverage grades, not proof of authenticity or listening quality. Intentional lo-fi, vintage masters and bass stems may receive LQ and still sound right.
 
@@ -39,13 +50,13 @@ Folder score averages measured grades using HQ 100 / MQ 50 / LQ 0. Errors and un
 
 ## Local limits
 
-Analysis: 50 tracks per batch; inventory: 10,000 candidates / 100,000 visited entries with incomplete-inventory warnings. Current-session summaries accumulate across batches; detailed evidence and JSON export cover the latest completed batch. Rescanning resets the summary.
+Analysis automatically continues through batches of 50; 50 is not a selection or folder-size limit. Inventory: 10,000 candidates / 100,000 visited entries with incomplete-inventory warnings. Current-session summaries accumulate across completed batches; detailed evidence and JSON export cover the latest completed batch. Rescanning resets the summary. Processing uses the CPU; GPU acceleration is not implemented.
 
-Canonical limits: 24 hours / 172,800 bins per track; 250,000 retained report bins per batch; 8–192 kHz and up to eight channels are bounds, not qualification of every variant. Spectrum evidence has a 32 MiB default budget; full grading continues without a graph if only that evidence budget is exceeded. New analysis caches retain the latest three finished owned jobs. Active, legacy and unrecognized cache contents are preserved; this is not a hard disk-size cap.
+Canonical limits: 24 hours / 172,800 bins per track; 250,000 retained report bins per batch; 8–192 kHz and up to eight channels are bounds, not qualification of every variant. Spectrum evidence has a 32 MiB default budget; full grading continues without a graph if only that evidence budget is exceeded. New analysis caches retain the latest three finished owned batches. Active, legacy and unrecognized cache contents are preserved; this is not a hard disk-size cap.
 
 ## Release and development
 
-The [launch checklist](docs/LAUNCH_CHECKLIST.md), [local test record](docs/LOCAL_TEST_RESULTS.md), [security review](docs/SECURITY.md) and [release gates](docs/RELEASE_GATES.md) show passed and pending work. Project-owned code is licensed under GPLv3 only; dependency redistribution and ownership review must be completed before a public release. This source preview includes the [exact generated canonical scanner](canonical/README.md); dependencies, local reports and private music are excluded.
+The [Windows beta notes](docs/WINDOWS_BETA.md), [launch checklist](docs/LAUNCH_CHECKLIST.md), [local test record](docs/LOCAL_TEST_RESULTS.md), [security review](docs/SECURITY.md) and [release gates](docs/RELEASE_GATES.md) show passed and pending work. Project-owned code is licensed under GPLv3 only. A binary release must include its reviewed dependency notices and corresponding source/build materials. This repository includes the [exact generated canonical scanner](canonical/README.md); dependencies, local reports and private music are excluded from Git source.
 
 Grading uses one maintained canonical scanner. Build copies are generated and hash-verified; never edit another classifier independently. [Format scope](docs/FORMAT_SUPPORT.md) and [edge cases](docs/EDGE_CASES.md) describe practical limits.
 

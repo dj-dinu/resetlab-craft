@@ -4,6 +4,8 @@ import tempfile
 import threading
 from types import SimpleNamespace
 import unittest
+from collections import defaultdict
+from unittest.mock import patch
 
 from music_library_lab.desktop import DesktopBridge
 
@@ -85,6 +87,52 @@ class DesktopBridgeTests(unittest.TestCase):
             self.state.jobs["job"].update(kind=kind, status=status)
             self.assertIn("error", self.bridge.save_report("job"))
         self.assertEqual(self.bridge._window.dialogs, 0)
+
+    def test_drop_local_file_or_folder_preserves_sources_and_consumes_once(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            audio = root / "chosen.wav"
+            audio.write_bytes(b"owned fixture")
+            self.bridge._window = Window(self.session.origin + "/")
+            for source in (audio, root):
+                self.bridge._on_drop({"dataTransfer": {"files": [{"pywebviewFullPath": str(source)}]}})
+                self.assertEqual(self.bridge.take_drop(), {"path": str(source.resolve())})
+                self.assertIsNone(self.bridge.take_drop())
+            self.assertEqual(audio.read_bytes(), b"owned fixture")
+
+    def test_drop_rejects_external_page_multiple_items_urls_and_busy_operation(self):
+        self.bridge._window = Window("https://example.com")
+        self.bridge._on_drop({"dataTransfer": {"files": [{"pywebviewFullPath": "file:///etc/passwd"}]}})
+        self.assertIsNone(self.bridge.take_drop())
+        self.bridge._window.url = self.session.origin + "/"
+        for event in (None, {}, {"dataTransfer": {"files": [{}, {}]}},
+                      {"dataTransfer": {"files": [{"pywebviewFullPath": "https://example.com/song.mp3"}]}}):
+            self.bridge._on_drop(event)
+            self.assertIn("error", self.bridge.take_drop())
+        with tempfile.TemporaryDirectory() as temporary:
+            self.state.busy = True
+            self.bridge._on_drop({"dataTransfer": {"files": [{"pywebviewFullPath": temporary}]}})
+            self.assertIn("error", self.bridge.take_drop())
+
+    def test_drop_binding_keeps_csp_and_registers_one_native_receiver(self):
+        from webview.dom import _dnd_state
+        document = SimpleNamespace(_node_id="document", _event_handlers=defaultdict(list))
+        window = Window(self.session.origin + "/")
+        window.dom = SimpleNamespace(document=document, _elements={})
+        scripts = []
+        window.run_js = scripts.append
+        self.bridge._window = window
+        with patch.dict(_dnd_state, {"num_listeners": 0}):
+            try:
+                self.bridge._bind_drop()
+                self.bridge._bind_drop()
+                self.assertEqual(_dnd_state["num_listeners"], 1)
+                self.assertEqual(len(document._event_handlers["drop"]), 1)
+                self.assertTrue(self.bridge.drop_status()["available"])
+                self.assertTrue(all("eval(" not in script for script in scripts))
+            finally:
+                self.bridge._unbind_drop()
+            self.assertEqual(_dnd_state["num_listeners"], 0)
 
 
 if __name__ == "__main__":

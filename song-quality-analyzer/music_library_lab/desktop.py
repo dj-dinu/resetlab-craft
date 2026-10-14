@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 
 from . import __version__, APP_NAME, SUITE_NAME
 from .server import State, make_handler, sanitize_report
+from .inventory import music_source
 
 
 class LocalSession:
@@ -56,6 +57,90 @@ class DesktopBridge:
         self._session = session
         self._webview = webview_module
         self._window = None
+        self._drop_lock = threading.Lock()
+        self._drop_message = None
+        self._drop_document = None
+        self._drop_available = False
+
+    def drop_status(self):
+        return {"available": self._drop_available} if self._local_page() else {"available": False}
+
+    def take_drop(self):
+        if not self._local_page():
+            return None
+        with self._drop_lock:
+            message, self._drop_message = self._drop_message, None
+        return message
+
+    def _on_drop(self, event):
+        if not self._local_page():
+            return
+        files = []
+        try:
+            if not isinstance(event, dict):
+                raise ValueError("Invalid drop event.")
+            transfer = event.get("dataTransfer", {})
+            if not isinstance(transfer, dict):
+                raise ValueError("Invalid drop event.")
+            files = transfer.get("files", [])
+            if not isinstance(files, list) or len(files) != 1:
+                raise ValueError("Drop one audio file or one folder at a time.")
+            path = files[0].get("pywebviewFullPath") if isinstance(files[0], dict) else None
+            if not isinstance(path, str) or not path or not Path(path).is_absolute():
+                raise ValueError("The desktop could not resolve this drop. Use Add music instead.")
+            if getattr(self._session.state, "busy", False):
+                raise ValueError("Wait for the current operation to finish, or cancel it before adding music.")
+            message = {"path": str(music_source(path))}
+        except (ValueError, OSError, TypeError):
+            message = {"error": "Drop one accessible audio file or music folder. Links, URLs and unsupported files cannot be loaded."}
+            if isinstance(files, list) and len(files) != 1:
+                message = {"error": "Drop one audio file or one folder at a time."}
+            elif getattr(self._session.state, "busy", False):
+                message = {"error": "Wait for the current operation to finish, or cancel it before adding music."}
+        with self._drop_lock:
+            self._drop_message = message
+
+    def _bind_drop(self):
+        """Pinned pywebview 6.2.1 drop adapter, retaining the strict CSP.
+
+        Its DOM.on uses eval, which our CSP forbids. Register the equivalent
+        native event dispatcher with run_js instead; no eval or CSP relaxation.
+        Full paths still come from pywebview's native WebView2/WKWebView handler.
+        """
+        if not self._local_page():
+            return
+        from webview.dom import _dnd_state
+        self._unbind_drop()
+        document = self._window.dom.document
+        self._window.dom._elements[document._node_id] = document
+        document._event_handlers["drop"].append(self._on_drop)
+        _dnd_state["num_listeners"] += 1
+        self._drop_document = document
+        try:
+            self._window.run_js("""
+                if (!window.__spectracraftDropBound) {
+                    window.__spectracraftDropBound = true;
+                    document.addEventListener('drop', function(event) {
+                        event.preventDefault();
+                        if (!event.dataTransfer || !event.dataTransfer.files.length) return;
+                        window.pywebview._jsApiCallback('pywebviewEventHandler',
+                            {event: event, nodeId: 'document'}, 'eventHandler');
+                    });
+                }
+            """)
+            self._drop_available = True
+        except Exception:
+            self._unbind_drop()
+
+    def _unbind_drop(self):
+        if self._drop_document is not None:
+            from webview.dom import _dnd_state
+            callbacks = self._drop_document._event_handlers["drop"]
+            if self._on_drop in callbacks:
+                callbacks.remove(self._on_drop)
+            _dnd_state["num_listeners"] = max(0, _dnd_state["num_listeners"] - 1)
+        self._drop_document = None
+        self._drop_available = False
 
     def _local_page(self):
         if self._window is None:
@@ -86,7 +171,8 @@ class DesktopBridge:
             return {"error": "Open the local analyzer to save a report."}
         with self._session.state.lock:
             job = self._session.state.jobs.get(job_id)
-            if not job or job.get("kind") != "audit" or job.get("status") != "complete":
+            ready = job and (job.get("status") == "complete" or job.get("status") in {"cancelled", "failed"} and job.get("completed_batches", 0) > 0)
+            if not ready or job.get("kind") != "audit" or not job.get("result"):
                 return {"error": "Complete an analysis before saving its report."}
             payload = json.dumps(sanitize_report(job["result"]), ensure_ascii=False, indent=2).encode("utf-8")
         selection = self._window.create_file_dialog(
@@ -124,14 +210,17 @@ def main():
     try:
         window = webview.create_window(
             f"{APP_NAME} · {__version__} — by {SUITE_NAME}", session.url,
-            js_api=bridge, width=1280, height=840, min_size=(960, 640),
+            # Sizes are logical pixels; allow half-screen windows on scaled displays.
+            js_api=bridge, width=1280, height=840, min_size=(420, 360), resizable=True,
             background_color="#f6f5f0",
         )
         bridge._window = window
+        window.events.loaded += bridge._bind_drop
         # Windows uses the installed Edge WebView2 runtime; macOS uses WKWebView.
         renderer = "edgechromium" if os.name == "nt" else None
         webview.start(gui=renderer, debug=args.debug, private_mode=True)
     finally:
+        bridge._unbind_drop()
         session.stop()
 
 

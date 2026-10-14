@@ -34,7 +34,12 @@ def main():
     parser.add_argument("--scanner", type=Path)
     parser.add_argument("--decoder", type=Path)
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--dist-dir", type=Path, default=PROJECT / "dist",
+                        help="Versioned output directory beneath this project's dist folder")
     args = parser.parse_args()
+    dist_dir = args.dist_dir.resolve()
+    if not dist_dir.is_relative_to((PROJECT / "dist").resolve()):
+        raise SystemExit("Desktop output must stay inside this project's dist folder.")
     settings_path = PROJECT / "local_settings.json"
     settings = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.is_file() else {}
     scanner = (args.scanner or Path(settings.get("scanner_path", str(PROJECT / "canonical" / "scan_quality.py")))).resolve()
@@ -125,9 +130,9 @@ def main():
         print(json.dumps({"prepared": True, "engine_sha256": manifest["engine"]["sha256"], "spec": str(spec)}))
         return
     import PyInstaller.__main__
-    PyInstaller.__main__.run([str(spec), "--noconfirm", "--distpath", str(PROJECT / "dist"),
+    PyInstaller.__main__.run([str(spec), "--noconfirm", "--distpath", str(dist_dir),
                              "--workpath", str(work / "pyinstaller-work")])
-    bundle = PROJECT / "dist" / BUNDLE_NAME
+    bundle = dist_dir / BUNDLE_NAME
     manifest["bundle_bytes"] = sum(path.stat().st_size for path in bundle.rglob("*") if path.is_file())
     (work / "completed-build.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(json.dumps({"built": True, "executable": str(bundle / (BUNDLE_NAME + ".exe")),
