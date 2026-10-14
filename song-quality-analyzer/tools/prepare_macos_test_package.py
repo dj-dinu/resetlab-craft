@@ -99,13 +99,13 @@ def main():
     receipts.append(download(f'https://www.python.org/ftp/python/{version}/Python-{version}.tgz',
                              sources / f'Python-{version}.tgz'))
     with tarfile.open(sources / f'Python-{version}.tgz') as archive:
-        member = next(m for m in archive if m.name.endswith('/LICENSE') and m.isfile())
+        member = archive.getmember(f'Python-{version}/LICENSE')
         (target / 'PYTHON_LICENSE.txt').write_bytes(archive.extractfile(member).read())
     openssl_version = re.match(r'OpenSSL ([\d.]+)', ssl.OPENSSL_VERSION).group(1)
     receipts.append(download(f'https://github.com/openssl/openssl/releases/download/openssl-{openssl_version}/openssl-{openssl_version}.tar.gz',
                              sources / f'openssl-{openssl_version}.tar.gz'))
     with tarfile.open(sources / f'openssl-{openssl_version}.tar.gz') as archive:
-        member = next(m for m in archive if m.name.endswith(('/LICENSE.txt', '/LICENSE')) and m.isfile())
+        member = archive.getmember(f'openssl-{openssl_version}/LICENSE.txt')
         (target / 'OPENSSL_LICENSE.txt').write_bytes(archive.extractfile(member).read())
     prefix = args.decoder.resolve().parents[1]
     homebrew = target / 'homebrew-mpg123'
@@ -124,11 +124,17 @@ def main():
     shutil.copyfile(work / 'mac-package/Spectracraft-apple-silicon-test.zip', target / 'Spectracraft-apple-silicon-test.zip')
     shutil.copyfile(work / 'mac-package/build-manifest.json', target / 'build-manifest.json')
     shutil.copyfile(work / 'release-dependency-review.json', target / 'dependency-inventory.json')
+    with zipfile.ZipFile(target / 'Synthetic-audio-tests.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        fixtures = work / 'mac-gui-evidence/fixtures'
+        for path in sorted(fixtures.rglob('*')):
+            if path.is_file():
+                archive.write(path, path.relative_to(fixtures).as_posix())
     (target / 'source-receipts.json').write_text(json.dumps(receipts, indent=2) + '\n')
     (target / 'README.txt').write_text(
         'Spectracraft Apple silicon volunteer test — macOS 15 or later\n'
         'Extract Spectracraft-apple-silicon-test.zip with Finder, then open Spectracraft.app.\n'
         'Python and Homebrew are not needed to run the app. Use MACOS_VOLUNTEER_TEST.md.\n'
+        'Synthetic-audio-tests.zip supplies owned six-format, 103-track and pause/close fixtures for analysis.\n'
         'Ad-hoc signed, not notarized. Record first-launch security prompts; do not disable Gatekeeper globally.\n'
         'This is a test artifact, not a public supported Mac release.\n'
         'The app analyzes locally and leaves music, tags and artwork unchanged.\n'

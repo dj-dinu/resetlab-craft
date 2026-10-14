@@ -65,6 +65,12 @@ if '--scanner-worker' not in sys.argv:
                '; input.dispatchEvent(new Event("input")); input.dispatchEvent(new Event("change"));')
             until(lambda: dom('document.getElementById("track-count").textContent === ' + json.dumps(str(count)) +
                               ' && !document.getElementById("audit-button").disabled'), 'inventory ' + str(count))
+        def pick(path, kind, count):
+            window.create_file_dialog = lambda *args, **kwargs: (str(path),) if path else None
+            click('scan-button')
+            click('browse-button' if kind == 'folder' else 'browse-file-button')
+            until(lambda: dom('document.getElementById("track-count").textContent === ' + json.dumps(str(count)) +
+                              ' && !document.getElementById("audit-button").disabled'), 'picker bridge inventory')
         def analyze():
             previous = job()
             click('audit-button')
@@ -105,7 +111,8 @@ if '--scanner-worker' not in sys.argv:
             assert dom('document.documentElement.dataset.theme') != initial
             check('appearance-toggle')
             screenshot('mac-ui-half-screen')
-            load(fixture_root / 'Formats café % audio', 6)
+            pick(fixture_root / 'Formats café % audio', 'folder', 6)
+            check('folder-picker-through-native-bridge', dialog_selection_substituted=True)
             check('unicode-folder-auto-inventory')
             analyze()
             check('progress-visible')
@@ -129,6 +136,11 @@ if '--scanner-worker' not in sys.argv:
             assert str(fixture_root) not in exported and len(json.loads(exported)['records']) == 6
             check('export-via-ui-and-bridge', save_dialog_selection_substituted=True)
             screenshot('mac-ui-results')
+            pick(fixture_root / 'Formats café % audio/01 HQ.wav', 'file', 1)
+            check('single-file-picker-through-native-bridge', dialog_selection_substituted=True)
+            pick(None, 'folder', 1)
+            assert dom('document.getElementById("root-path").value').endswith('01 HQ.wav')
+            check('picker-cancel-preserves-selection', dialog_selection_substituted=True)
             load(fixture_root / 'Batch 103 café % తెలుగు', 103)
             titles = dom('Array.from(document.querySelectorAll(".track-title"), e=>e.textContent)')
             assert titles == sorted(titles), titles[:3]

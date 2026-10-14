@@ -19,9 +19,16 @@ macOS 15 or later. Older systems and Intel packages require separate qualificati
   batches of 50/50/3, Pause/Resume, Stop, half-screen resize, appearance and close
   with a paused decoder.
 
+Native testing found that pywebview 6.2.1's generated API functions were blocked
+by WKWebView's CSP enforcement. The Mac adapter uses normal closures and native
+JavaScript completion values for the five approved bridge methods. The strict
+CSP, local-origin guards and argument/result protocol remain in place. The
+bridge protocol is also tested with dynamic code generation disabled.
+
 The build-only UI driver is enabled by `--ui-test-driver` for a separate CI app.
-It is absent from the normal app. Only the save dialog's selected destination
-is substituted; this does not qualify the native save dialog. Evidence uses
+It is absent from the normal app. File/folder/save dialog selections are
+substituted to test the actual bridge and page controls; this does not qualify
+the native dialog windows themselves. Evidence uses
 only generated audio. No session tokens, private settings or music are uploaded.
 
 The workflow uploads a volunteer kit only after package/UI tests and matching

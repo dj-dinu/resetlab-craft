@@ -44,6 +44,7 @@ jobs:
         run: |
           python -m unittest discover -s tests
           node tests/test_library_view.js
+          node tests/test_cocoa_bridge.js
           python tools/validate_platform_smoke.py --report .work/macos-smoke.json
       - name: Build Apple silicon app and verify extracted package
         if: matrix.architecture == 'arm64'

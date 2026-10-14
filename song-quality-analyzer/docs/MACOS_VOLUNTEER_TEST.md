@@ -7,6 +7,9 @@ audio you may share; audio, tags and artwork should remain unchanged.
 Use only a normal `Spectracraft.app` package from the maintainer. The separate
 CI app containing the UI driver is not a volunteer or public download. Record
 the ZIP SHA-256, app version, macOS version and Mac chip in your notes.
+Extract `Synthetic-audio-tests.zip` to start with the included generated audio.
+`Formats café % audio` tests six formats; `Batch 103 café % తెలుగు` tests
+automatic batching; `Pause and close` supplies a longer track for controls.
 
 1. Download and extract the ZIP with Finder, move the app to Applications and
    open it normally. Record any security prompt and its exact wording. Test
