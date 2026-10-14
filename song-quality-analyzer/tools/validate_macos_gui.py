@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import socket
 import subprocess
@@ -85,6 +86,11 @@ def main():
             returncode = proc.wait(timeout=420)
             if report_path.is_file():
                 print(report_path.read_text(), flush=True)
+            if returncode:
+                log.flush()
+                details = (output / 'instrumented-ui.log').read_text(errors='replace')[-12000:]
+                details = re.sub(r'#token=[^\s\"\x27<>]+', '#token=[redacted]', details)
+                print(details, flush=True)
             assert returncode == 0, 'Packaged UI flow failed; inspect mac-ui.json and instrumented-ui.log'
         finally:
             if proc.poll() is None:

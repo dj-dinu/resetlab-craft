@@ -23,6 +23,14 @@ if '--scanner-worker' not in sys.argv:
     session = None
     base_session = desktop.LocalSession
     original_start = webview.start
+    results['native_calls'] = []
+    original_folder = desktop.DesktopBridge.choose_folder
+    def tracked_folder(self):
+        results['native_calls'].append('choose_folder entered')
+        value = original_folder(self)
+        results['native_calls'].append('choose_folder selected' if value else 'choose_folder cancelled/refused')
+        return value
+    desktop.DesktopBridge.choose_folder = tracked_folder
 
     class TestSession(base_session):
         def __init__(self, *args, **kwargs):
@@ -174,6 +182,13 @@ if '--scanner-worker' not in sys.argv:
             results['passed'] = True
         except Exception as exc:
             results['error'] = repr(exc)
+            results['native_renderer'] = getattr(window.gui, 'renderer', None)
+            results['backend_busy'] = session.state.busy
+            results['backend_jobs'] = len(session.state.jobs)
+            try:
+                results['ui_diagnostic'] = dom('({count:document.getElementById("track-count").textContent, root:document.getElementById("root-path").value, alerts:document.getElementById("alerts").textContent, folderHidden:document.getElementById("browse-button").hidden, folderDisabled:document.getElementById("browse-button").disabled, pendingFolder:Object.keys(window.pywebview._returnValuesCallbacks.choose_folder||{}).length})')
+            except Exception:
+                pass
             screenshot('mac-ui-failure')
         finally:
             report_path.parent.mkdir(parents=True, exist_ok=True)
