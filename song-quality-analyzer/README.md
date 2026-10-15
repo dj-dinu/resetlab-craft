@@ -34,6 +34,10 @@ The desktop window can shrink to 420 × 360 logical pixels for split-screen
 work. At narrow widths, the results table scrolls inside its panel while
 the page and controls fit the window.
 
+Next-build readability: a larger text default and an **Aa** menu beside the
+sun/moon control offer locally saved 90–150% text sizing. These changes are in
+the source/preview builds; the published Windows alpha.5 ZIP remains unchanged.
+
 ## What the grade means
 
 Supported candidates: MP3, WAV, AIFF, FLAC, AAC and ALAC; actual codecs/containers are checked.
