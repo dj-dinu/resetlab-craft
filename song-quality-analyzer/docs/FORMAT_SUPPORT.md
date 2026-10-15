@@ -1,8 +1,13 @@
 # Audio format support and qualification
 
-Updated October 11, 2026. The current local alpha has multi-format decoding in the **one canonical full-spectrum scanner**. The table distinguishes implemented codec scope from public platform qualification.
+The table below preserves the October 11, 2026 format-scope checkpoint for the
+**one canonical full-spectrum scanner**. Its platform-pending labels are
+historical: native macOS source and ARM64 package checks have since passed.
+Use the [platform overview](platforms/README.md) and
+[current release review](platforms/macos/RELEASE_REVIEW.md) for present evidence
+and open gates. Successful fixtures do not qualify every codec profile/device.
 
-## Current local scope
+## Format scope and historical qualification checkpoint
 
 | Format | Candidate extensions | Canonical decoder and limits | Qualification |
 | --- | --- | --- | --- |

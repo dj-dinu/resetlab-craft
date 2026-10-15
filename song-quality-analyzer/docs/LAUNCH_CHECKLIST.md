@@ -1,6 +1,10 @@
 # First-launch checklist
 
-October 14, 2026: the user approved a Windows public beta after positive testing. This checklist records continued qualification; passing unit tests alone does not establish stable operation on every machine. See [Windows beta notes](WINDOWS_BETA.md).
+October 14, 2026: the Windows public beta is published. The Apple silicon Mac
+candidate has native automated and positive volunteer evidence, with runtime,
+signing and explicit manual gates still open. See [Windows beta notes](platforms/windows/README.md)
+and the [Mac release plan](platforms/macos/RELEASE_PLAN.md). This checklist records
+continued qualification; unit tests alone do not establish operation on every machine.
 
 ## Automated/local edge cases
 
@@ -29,7 +33,10 @@ For Windows and each advertised Mac architecture, use a machine without develope
 6. Test slow/removable/cloud/network storage, permissions, missing/moved files, low disk space, multi-hour content and repeated large runs; measure peak CPU/RAM/disk and cache growth.
 7. Check keyboard-only use, reduced motion, both appearances, screen-reader labels and actual mouse/trackpad scrolling.
 
-No Mac native test has occurred on the Windows development machine. Linux is a later qualification target, not an advertised supported platform.
+Mac native source tests ran on both Intel and ARM64 runners; packaged checks
+currently cover ARM64. The ordinary launch and instrumented UI checks are
+distinct from actual native picker/Finder/Gatekeeper qualification. Linux is
+deferred, not an advertised supported platform.
 
 ## Small user beta before launch
 

@@ -22,6 +22,12 @@ PROJECT = Path(__file__).resolve().parents[1]
 SHARED_SOURCES_URL = ('https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/'
                       'Spectracraft-0.1.0-alpha.5-dependency-sources.zip')
 SHARED_SOURCES_SHA = 'a9f93deeeddbfb4879bc3d499433f0dfe54a3cf84a02bd0e7cc66639fc753664'
+KIT_DOCUMENTS = {
+    'LICENSE': 'LICENSE',
+    'docs/platforms/macos/VOLUNTEER_TEST.md': 'MACOS_VOLUNTEER_TEST.md',
+    'docs/platforms/macos/TESTING.md': 'MACOS_TESTING.md',
+    'docs/REUSE_AND_BRANDING.md': 'REUSE_AND_BRANDING.md',
+}
 
 
 def sha(path):
@@ -119,8 +125,16 @@ def main():
     subprocess.run(['git', 'archive', '--format=zip', '--output=' + str(source_zip), 'HEAD'],
                    cwd=PROJECT.parent, check=True)
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=PROJECT.parent, text=True).strip()
-    for filename in ('LICENSE', 'docs/MACOS_VOLUNTEER_TEST.md', 'docs/MACOS_TESTING.md', 'docs/REUSE_AND_BRANDING.md'):
-        shutil.copyfile(PROJECT / filename, target / Path(filename).name)
+    for source_name, kit_name in KIT_DOCUMENTS.items():
+        content = (PROJECT / source_name).read_text(encoding='utf-8')
+        if kit_name == 'MACOS_TESTING.md':
+            content = content.replace('](VOLUNTEER_TEST.md)', '](MACOS_VOLUNTEER_TEST.md)')
+            content = content.replace('](../../BETA_TEST_GUIDE.md)',
+                                      '](https://github.com/dj-dinu/resetlab-craft/blob/' + commit +
+                                      '/song-quality-analyzer/docs/BETA_TEST_GUIDE.md)')
+        elif kit_name == 'REUSE_AND_BRANDING.md':
+            content = content.replace('](../LICENSE)', '](LICENSE)')
+        (target / kit_name).write_text(content, encoding='utf-8')
     shutil.copyfile(work / 'mac-package/Spectracraft-apple-silicon-test.zip', target / 'Spectracraft-apple-silicon-test.zip')
     shutil.copyfile(work / 'mac-package/build-manifest.json', target / 'build-manifest.json')
     shutil.copyfile(work / 'release-dependency-review.json', target / 'dependency-inventory.json')

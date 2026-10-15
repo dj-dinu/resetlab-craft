@@ -9,18 +9,20 @@ Read a music folder or one audio file, measure complete tracks, inspect the spec
 **Windows public beta: 0.1.0-alpha.5, published October 14, 2026.**
 [Download the Windows x64 ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip),
 or see the [release notes, corresponding source, dependency materials and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
-This is an unsigned early beta, with known qualification gaps. Mac and Linux
-packages are not available.
+This is an unsigned early Windows beta, with known qualification gaps.
+An Apple silicon volunteer package has passed native checks and received
+positive M4 feedback; a public Mac release is pending. Linux is deferred.
 
 | Platform | Actual evidence |
 | --- | --- |
 | Windows x64 | Beta target. User testing reported good; source, browser and packaged worker checks pass. Clean-machine installation, native gestures/display scaling/shutdown and runtime traffic capture are not fully qualified. |
-| macOS Intel / Apple Silicon | Native source entry point exists; neither architecture has been built or tested natively. No Mac installer is available. |
+| macOS Apple silicon | Native macOS 15 source, normal extracted package and 17 instrumented Cocoa UI checks passed; positive real-library feedback on a MacBook Air M4. [Candidate, test kit and release plan](docs/platforms/macos/README.md). Runtime refresh and deployment/manual gates remain open. |
+| macOS Intel | Native macOS 15 source suite and six-format checks passed; no Intel app package qualified. |
 | Linux | Deferred and untested. Consider after Windows and Mac qualification. |
 
 ## Start here
 
-1. Follow [Installation](docs/INSTALLATION.md) for the current local Windows build or developer setup.
+1. Choose [Windows](docs/platforms/windows/README.md) or [Mac](docs/platforms/macos/README.md), then follow [Installation](docs/INSTALLATION.md) for download or source setup.
 2. Add music using one control for a folder or audio file; metadata loads automatically. Select the tracks you want to analyze.
 3. Analyze: selected tracks run in title A–Z order through automatic batches of 50. Pause/Resume holds your place; Stop retains completed batches. Inspect results and save the latest completed batch.
 
@@ -56,7 +58,7 @@ Canonical limits: 24 hours / 172,800 bins per track; 250,000 retained report bin
 
 ## Release and development
 
-The [Windows beta notes](docs/WINDOWS_BETA.md), [launch checklist](docs/LAUNCH_CHECKLIST.md), [local test record](docs/LOCAL_TEST_RESULTS.md), [security review](docs/SECURITY.md) and [release gates](docs/RELEASE_GATES.md) show passed and pending work. Project-owned code is licensed under GPLv3 only. A binary release must include its reviewed dependency notices and corresponding source/build materials. This repository includes the [exact generated canonical scanner](canonical/README.md); dependencies, local reports and private music are excluded from Git source.
+The [documentation index](docs/README.md), [repository layout](docs/REPOSITORY_LAYOUT.md), [Windows beta notes](docs/platforms/windows/README.md), [Mac release review](docs/platforms/macos/RELEASE_REVIEW.md) and [release gates](docs/RELEASE_GATES.md) show passed and pending work. Project-owned code is licensed under GPLv3 only. A binary release must include its reviewed dependency notices and corresponding source/build materials. This repository includes the [exact generated canonical scanner](canonical/README.md); dependencies, local reports and private music are excluded from Git source.
 
 Grading uses one maintained canonical scanner. Build copies are generated and hash-verified; never edit another classifier independently. [Format scope](docs/FORMAT_SUPPORT.md) and [edge cases](docs/EDGE_CASES.md) describe practical limits.
 

@@ -1,5 +1,11 @@
 # Private beta preparation
 
+Historical preparation notes, retained for context. Windows 0.1.0-alpha.5 is
+now public, and native Mac source/package checks and positive M4 feedback have
+since been received. Use the [platform overview](platforms/README.md) and
+[Mac release plan](platforms/macos/RELEASE_PLAN.md) for current status. Statements
+about private hosting or untested Mac packages below describe the earlier stage.
+
 This repository is a source preview for Spectracraft, the first ResetLab Craft
 tool. It is not a qualified public download. Source is GPLv3-only; private
 hosting controls repository access and does not add restrictions to the GPL.

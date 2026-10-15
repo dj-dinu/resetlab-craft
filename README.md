@@ -4,9 +4,16 @@ An audio workshop for DJs and producers. ResetLab Craft is the parent brand for 
 
 **[Download Spectracraft for Windows x64](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip)** · [Release notes and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5)
 
-Extract the complete ZIP and open `Spectracraft.exe`, keeping `_internal` beside it. This is an unsigned early beta; Mac and Linux downloads are not available.
+Extract the complete ZIP and open `Spectracraft.exe`, keeping `_internal` beside it. This is an unsigned early beta.
 
-**[Spectracraft](song-quality-analyzer/README.md)** is the first implemented tool: inspect full-track spectral coverage, review folder scores and keep evidence without altering music. See its [Windows beta notes](song-quality-analyzer/docs/WINDOWS_BETA.md) for installation, known limits and the actual validation scope.
+| Platform | Status | Start here |
+| --- | --- | --- |
+| Windows x64 | Public beta available | [Download and installation](song-quality-analyzer/docs/platforms/windows/README.md) |
+| Mac Apple silicon | Tested candidate; public release pending | [Mac status and test kit](song-quality-analyzer/docs/platforms/macos/README.md) · [Release plan](song-quality-analyzer/docs/platforms/macos/RELEASE_PLAN.md) |
+| Mac Intel | Native source tests passed; no app package qualified | [Native test scope](song-quality-analyzer/docs/platforms/macos/TESTING.md) |
+| Linux | Deferred; no package | [Linux status](song-quality-analyzer/docs/platforms/linux/README.md) |
+
+**[Spectracraft](song-quality-analyzer/README.md)** is the first implemented tool: inspect full-track spectral coverage, review folder scores and keep evidence without altering music. See the [documentation index](song-quality-analyzer/docs/README.md) and [repository map](song-quality-analyzer/docs/REPOSITORY_LAYOUT.md) for shared source, platform guides, tests and build outputs.
 
 | Tool | Purpose | Status |
 | --- | --- | --- |

@@ -1,6 +1,9 @@
 # Installation
 
-Spectracraft is an early Windows x64 public beta. Mac and Linux packages are not available. Run as a normal user; administrator access is not needed for analyzing songs.
+Choose the [Windows public beta](platforms/windows/README.md) or the
+[Apple silicon Mac candidate](platforms/macos/README.md). The Mac package is
+currently a volunteer test build, with public release gates still open. Linux
+is deferred. Run as a normal user; analysis does not need administrator access.
 
 ## Windows beta download
 
@@ -12,7 +15,18 @@ Spectracraft is an early Windows x64 public beta. Mac and Linux packages are not
 
 The build is unsigned and uses Microsoft Edge WebView2 Runtime. Follow your
 device's security policy and report launch blocks. Review the
-[beta notes](WINDOWS_BETA.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
+[beta notes](platforms/windows/README.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
+
+## Mac test candidate
+
+Use the [Mac overview](platforms/macos/README.md) for the test-kit download,
+macOS/architecture scope, signing status and extraction steps. Python and
+Homebrew are not needed to run the packaged app. Follow the
+[volunteer checklist](platforms/macos/VOLUNTEER_TEST.md). A successful source
+test or launch does not qualify Gatekeeper or every native interaction.
+
+The current kit needs a bundled runtime security refresh before a public Mac
+release; see the [ordered release plan](platforms/macos/RELEASE_PLAN.md).
 
 ## Current local Windows build
 
@@ -40,11 +54,15 @@ If the window cannot launch, the developer browser fallback below can help diagn
 
 ## Developer setup
 
-Use Python 3.12, the tested development version. From the project folder:
+Python 3.12 is the existing qualification baseline. Use a maintained patched
+runtime and record the actual bundled native-library versions; the old Mac kit
+runtime is not the public-release target. From the project folder:
 
-For a suite checkout, first enter `song-quality-analyzer`. This private source
-preview contains the exact generated canonical scanner, but no installers or
-native decoder binaries. Windows is the initial beta target; Mac remains untested.
+For a suite checkout, first enter `song-quality-analyzer`. This public source
+checkout contains the exact generated canonical scanner. Installers/native
+decoder binaries are supplied separately as reviewed release/test assets.
+Native Mac source checks and an ARM64 package have been tested; public Mac
+distribution remains pending.
 Use a short Windows checkout path, such as `C:\Projects\ResetLabCraft`.
 Deeply nested source checkouts can exceed Windows file-path limits when writing
 analysis caches; comprehensive long-path qualification remains pending.
@@ -56,10 +74,8 @@ Windows:
     .venv\Scripts\python.exe -m pip install -r requirements-desktop.txt
     .venv\Scripts\python.exe run_desktop.py
 
-macOS developer entry point, untested natively:
-
-    .venv/bin/python -m pip install -r requirements-desktop.txt
-    .venv/bin/python run_desktop.py
+For macOS, follow the [native source and build instructions](platforms/macos/TESTING.md)
+for the architecture-matching runtime, mpg123 and tested NumPy baseline.
 
 The checkout includes `canonical/scan_quality.py` and its SHA-256 manifest.
 Verify it with `python tools/export_canonical_source.py --check`. The app uses
@@ -72,7 +88,8 @@ from the [official mpg123 project](https://www.mpg123.de/download.shtml).
 Set `SONG_AUDIT_MPG123_PATH` to its full library path, or set `decoder_path` in
 the ignored `local_settings.json`. Do not copy decoders from commercial DJ apps.
 WAV/AIFF/FLAC/AAC/ALAC use the installed PyAV dependency. Native library
-redistribution remains pending, so this repository contains source only.
+materials accompany reviewed binary downloads; the Git source tree itself
+does not contain those native libraries.
 
 For the local browser fallback, install requirements.txt and run:
 
@@ -85,11 +102,19 @@ To build the Windows alpha:
     python -m pip install -r requirements-build.txt
     python tools/build_desktop.py --decoder PATH_TO_LIBMPG123_DLL
 
-The output is the complete dist/Spectracraft folder. This recipe does not build a Mac package.
+On Windows, the output is the complete `dist/Spectracraft` folder. The same
+builder has a native Mac path; use the [ARM64 recipe](platforms/macos/TESTING.md)
+for its `.app`, architecture checks and archive/extract validation. Build each
+platform on its native OS; there is no qualified cross-compilation path.
 
 ## Platform decisions
 
-Target Windows and macOS first. macOS needs separate native Intel/Apple Silicon installation, decoder, dialog, signing and resource checks. Linux adds a GTK or Qt renderer and distribution-specific dependencies; evaluate it after the first two platforms are stable. See the [official pywebview platform requirements](https://pywebview.flowrl.com/guide/installation.html).
+Target Windows and macOS first. Native Mac source tests cover Intel/Apple
+silicon; packaged qualification currently covers ARM64 only. Dialog, signing,
+clean-account and broader device checks remain distinct release gates. Linux
+adds a renderer and distribution-specific dependencies and is deferred. See
+the [platform overview](platforms/README.md) and
+[official pywebview requirements](https://pywebview.flowrl.com/guide/installation.html).
 
 Installing dependencies/downloads uses the relevant vendor or package service. Analysis itself has no online account or upload flow. For offline testing, use files fully stored on the local disk.
 
