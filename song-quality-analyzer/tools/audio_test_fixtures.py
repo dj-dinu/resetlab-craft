@@ -46,7 +46,10 @@ def create_audio(folder: Path, *, gui=False):
             output.setparams((1, 2, rate, 0, 'NONE', 'not compressed'))
             block = np.round((.18 * np.sin(2 * np.pi * 1000 * t[:rate]) +
                               .18 * np.sin(2 * np.pi * 22000 * t[:rate])) * 32767).astype('<i2').tobytes()
-            for _ in range(300):
+            # A five-minute file can finish before the native UI sends Pause
+            # on fast Apple Silicon runners. Keep real decoding active long
+            # enough to exercise pause, resume, stop and window-close cleanup.
+            for _ in range(3600):
                 output.writeframesraw(block)
         return batch, slow
 

@@ -91,6 +91,7 @@ if '--scanner-worker' not in sys.argv:
             until(lambda: dom('!document.getElementById("export-button").disabled'), 'results rendered')
         def pause():
             until(lambda: dom('!document.getElementById("pause-button").disabled'), 'pause enabled')
+            assert job()['status'] == 'running', 'Control fixture finished before Pause was requested'
             click('pause-button')
             until(lambda: job()['progress'].get('paused') is True, 'decoder pause acknowledgment')
             until(lambda: dom('document.getElementById("pause-button").textContent === "Resume"'), 'resume control')
@@ -216,6 +217,10 @@ if '--scanner-worker' not in sys.argv:
             results['native_renderer'] = getattr(window.gui, 'renderer', None)
             results['backend_busy'] = session.state.busy
             results['backend_jobs'] = len(session.state.jobs)
+            current = job()
+            if current is not None:
+                results['last_audit'] = {key: current.get(key) for key in ('status', 'progress', 'error')}
+                results['last_audit']['pause_requested'] = current['pause_event'].is_set()
             try:
                 results['ui_diagnostic'] = dom('({count:document.getElementById("track-count").textContent, root:document.getElementById("root-path").value, alerts:document.getElementById("alerts").textContent, folderHidden:document.getElementById("browse-button").hidden, folderDisabled:document.getElementById("browse-button").disabled, pendingFolder:Object.keys(window.pywebview._returnValuesCallbacks.choose_folder||{}).length})')
             except Exception:
