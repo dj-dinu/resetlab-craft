@@ -6,17 +6,19 @@ Read a music folder or one audio file, measure complete tracks, inspect the spec
 
 ## Current status
 
-**Windows public beta: 0.1.0-alpha.5, published October 14, 2026.**
-[Download the Windows x64 ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip),
-or see the [release notes, corresponding source, dependency materials and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
-This is an unsigned early Windows beta, with known qualification gaps.
-An Apple silicon volunteer package has passed native checks and received
-positive M4 feedback; a public Mac release is pending. Linux is deferred.
+**Public beta: 0.1.0-beta.1, published October 15, 2026.**
+[Windows x64 ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-windows-x64.zip) ·
+[Apple silicon Mac ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-macos-arm64.zip) ·
+[Release notes, sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
+Both packages are unsigned early betas. Mac requires Apple silicon/macOS 15+,
+is ad-hoc signed and is not notarized; see its first-launch instructions.
+Native checks passed and M4 volunteer feedback was positive; manual qualification
+limits remain documented. Linux is deferred.
 
 | Platform | Actual evidence |
 | --- | --- |
 | Windows x64 | Beta target. User testing reported good; source, browser and packaged worker checks pass. Clean-machine installation, native gestures/display scaling/shutdown and runtime traffic capture are not fully qualified. |
-| macOS Apple silicon | Native macOS 15 source, normal extracted package and 17 instrumented Cocoa UI checks passed; positive real-library feedback on a MacBook Air M4. [Candidate, test kit and release plan](docs/platforms/macos/README.md). Runtime refresh and deployment/manual gates remain open. |
+| macOS Apple silicon | Public unsigned beta. Native macOS 15 source, normal extracted package and 19 Cocoa UI checks pass; positive M4 feedback. Patched runtime and numeric build identity verified. [Download and first launch](docs/platforms/macos/README.md). Signing/notarization and remaining manual qualification are future work. |
 | macOS Intel | Native macOS 15 source suite and six-format checks passed; no Intel app package qualified. |
 | Linux | Deferred and untested. Consider after Windows and Mac qualification. |
 
@@ -34,9 +36,8 @@ The desktop window can shrink to 420 × 360 logical pixels for split-screen
 work. At narrow widths, the results table scrolls inside its panel while
 the page and controls fit the window.
 
-Next-build readability: a larger text default and an **Aa** menu beside the
-sun/moon control offer locally saved 90–150% text sizing. These changes are in
-the source/preview builds; the published Windows alpha.5 ZIP remains unchanged.
+Beta.1 has a larger text default and an **Aa** menu beside the sun/moon control
+for locally saved 90–150% text sizing. Click the percentage to reset.
 
 ## What the grade means
 

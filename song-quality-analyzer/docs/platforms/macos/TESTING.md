@@ -1,6 +1,6 @@
 # macOS qualification
 
-Mac is not a public release yet. Source/backend qualification passed on native
+The unsigned Apple silicon public beta is available; see the [Mac guide](README.md). Source/backend qualification passed on native
 macOS 15 Intel and Apple silicon runners. The extended workflow builds an ARM64
 `.app`, archives and extracts it with `ditto` to preserve executable bits and
 symlinks, and checks the extracted package. The current deployment target is
@@ -31,13 +31,13 @@ substituted to test the actual bridge and page controls; this does not qualify
 the native dialog windows themselves. Evidence uses
 only generated audio. No session tokens, private settings or music are uploaded.
 
-The workflow uploads a volunteer kit only after package/UI tests and matching
+Release branches/manual qualification upload public beta candidate assets only after package/UI tests and matching
 native dependency source checks pass. It contains the normal app ZIP, current
 project source, exact Python package sources, native source/build materials,
 notices, hashes and the volunteer guide. A changed FFmpeg/mpg123 version stops
 assembly until its matching materials are reviewed. The instrumented app is
 never uploaded. No signing credentials are configured; builds are ad-hoc signed
-and not notarized. This test artifact does not create a public Mac release.
+and not notarized. Qualification artifacts alone do not publish a release. The public beta is a separate GitHub prerelease.
 Use [the volunteer checklist](VOLUNTEER_TEST.md) for Finder drops, native
 pickers, TCC, Gatekeeper, Retina/trackpad behavior and clean-user installation.
 
