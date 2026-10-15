@@ -42,6 +42,15 @@ def _worker_streams():
 
 
 def main():
+    if sys.argv[1:] == ["--runtime-info"]:
+        _worker_streams()
+        import json
+        import platform
+        import pyexpat
+        import ssl
+        print(json.dumps({"python": platform.python_version(), "openssl": ssl.OPENSSL_VERSION,
+                          "expat": pyexpat.EXPAT_VERSION}))
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "--scanner-worker":
         # A frozen executable is not a general Python interpreter. Dispatch its
         # worker mode to the mechanically copied canonical source instead.

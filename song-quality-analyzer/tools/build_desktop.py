@@ -15,7 +15,9 @@ import json
 import platform
 from pathlib import Path
 import shutil
+import ssl
 import sys
+import pyexpat
 
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT))
@@ -56,7 +58,7 @@ def main():
     mac = sys.platform == "darwin"
     if args.ui_test_driver and not mac:
         raise SystemExit("The build-only UI driver is for native macOS qualification.")
-    from music_library_lab import __version__, APP_NAME, SUITE_NAME, TOOL_NAME, BUNDLE_NAME
+    from music_library_lab import __version__, BUILD_NUMBER, APP_NAME, SUITE_NAME, TOOL_NAME, BUNDLE_NAME
     from tools.build_icon import write_icon
 
     work = PROJECT / ".work" / "desktop-build"
@@ -112,7 +114,9 @@ def main():
                 "decoder": {"file": "decoder/" + decoder_name, "sha256": sha256(decoder)},
                 "icon": {"source": "music_library_lab/static/mark.svg", "source_sha256": sha256(icon_source),
                          "sha256": sha256(icon), "embedded_in": BUNDLE_NAME + (".app" if mac else ".exe")},
-                "platform": sys.platform, "architecture": platform.machine(),
+                "platform": sys.platform, "architecture": platform.machine(), "build_number": BUILD_NUMBER,
+                "runtime": {"python": platform.python_version(), "openssl": ssl.OPENSSL_VERSION,
+                            "expat": pyexpat.EXPAT_VERSION},
                 "ui_test_driver": args.ui_test_driver,
                 "signing": "ad-hoc test build; not notarized" if mac else "unsigned test build",
                 "packages": packages}
@@ -160,8 +164,9 @@ def main():
         f"    debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=False, icon={str(icon)!r}{mac_options})\n"
         f"bundle = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name={BUNDLE_NAME!r})\n"
         + (f"app = BUNDLE(bundle, name={BUNDLE_NAME + '.app'!r}, icon={str(icon)!r},\n"
-           f"    bundle_identifier='com.resetlabcraft.spectracraft', version='0.1.0',\n"
+           f"    bundle_identifier='com.resetlabcraft.spectracraft', version={__version__.split('-')[0]!r},\n"
            "    info_plist={'NSPrincipalClass': 'NSApplication', 'NSHighResolutionCapable': True,\n"
+           f"                'CFBundleVersion': {BUILD_NUMBER!r}, 'SpectracraftVersion': {__version__!r},\n"
            "                'NSAppleScriptEnabled': False, 'LSMinimumSystemVersion': '15.0'})\n" if mac else ""),
         encoding="utf-8",
     )

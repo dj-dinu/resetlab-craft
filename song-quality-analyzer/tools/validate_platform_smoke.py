@@ -9,6 +9,8 @@ import sys
 import subprocess
 import tempfile
 import threading
+import struct
+import wave
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT))
@@ -18,7 +20,7 @@ if (PROJECT / '.localdeps').is_dir():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', type=Path, required=True)
-    parser.add_argument('--bundle', type=Path, help='macOS .app: exercise its frozen worker in an isolated environment')
+    parser.add_argument('--bundle', type=Path, help='Native app: exercise its frozen worker in an isolated environment')
     args = parser.parse_args()
     import av
     import numpy as np
@@ -49,18 +51,48 @@ def main():
         assert len(inventory['tracks']) == 6 and all(t['enabled'] for t in inventory['tracks'])
         result = analyze_tracks(scanner, music, inventory['tracks'], root / 'analysis',
                                 os.getenv('SONG_AUDIT_MPG123_PATH', ''))
+        integrity_music = root / 'Duration integrity'
+        integrity_music.mkdir()
+        with wave.open(str(music / '01 HQ.wav'), 'rb') as audio:
+            params, samples = audio.getparams(), audio.readframes(audio.getnframes())
+        good = integrity_music / 'valid-60-second-edit.wav'
+        with wave.open(str(good), 'wb') as audio:
+            audio.setparams(params)
+            audio.writeframes(samples * 20)
+        damaged = bytearray(good.read_bytes())
+        struct.pack_into('<I', damaged, 4, 36 + 240 * params.framerate * params.nchannels * params.sampwidth)
+        struct.pack_into('<I', damaged, 40, 240 * params.framerate * params.nchannels * params.sampwidth)
+        bad = integrity_music / 'declares-4min-decodes-1min.wav'
+        bad.write_bytes(damaged)
+        integrity_inventory = scan_library(str(integrity_music))
+        integrity_before = {p.name: digest(p) for p in integrity_music.iterdir()}
+
+        def check_integrity(engine, output, decoder):
+            measured = analyze_tracks(engine, integrity_music, integrity_inventory['tracks'], output, decoder)
+            broken = next(r for r in measured['records'] if r['source_path'] == bad.name)
+            valid = next(r for r in measured['records'] if r['source_path'] == good.name)
+            assert broken['quality'] is None and broken['status'] == 'integrity_error', broken
+            assert valid['quality'] == 'HQ', valid
+            assert all(digest(integrity_music / name) == value for name, value in integrity_before.items())
+
+        check_integrity(scanner, root / 'integrity-source', os.getenv('SONG_AUDIT_MPG123_PATH', ''))
         frozen = None
         if args.bundle:
-            assert sys.platform == 'darwin', 'The .app check must run on macOS'
+            assert sys.platform in {'darwin', 'win32'}, 'Use the matching native platform'
             bundle = args.bundle.resolve()
-            executable = bundle / 'Contents/MacOS/Spectracraft'
-            internal = bundle / 'Contents/Frameworks'
-            decoder = internal / 'decoder/libmpg123.0.dylib'
+            mac = sys.platform == 'darwin'
+            executable = bundle / ('Contents/MacOS/Spectracraft' if mac else 'Spectracraft.exe')
+            internal = bundle / ('Contents/Frameworks' if mac else '_internal')
+            decoder = internal / ('decoder/libmpg123.0.dylib' if mac else 'decoder/libmpg123-0.dll')
             assert digest(internal / 'canonical/scan_quality.py') == manifest['sha256']
             assert not json.loads((internal / 'build-manifest.json').read_text())['ui_test_driver']
+            runtime = subprocess.run([str(executable), '--runtime-info'], capture_output=True,
+                                     text=True, timeout=30, cwd=root, check=True)
+            assert json.loads(runtime.stdout) == json.loads((internal / 'build-manifest.json').read_text())['runtime']
             expected = platform.machine()
-            for binary in (executable, decoder):
-                assert subprocess.check_output(['/usr/bin/lipo', '-archs', str(binary)], text=True).strip() == expected
+            if mac:
+                for binary in (executable, decoder):
+                    assert subprocess.check_output(['/usr/bin/lipo', '-archs', str(binary)], text=True).strip() == expected
             saved_env = os.environ.copy()
             saved_executable = sys.executable
             prior_frozen = getattr(sys, 'frozen', None)
@@ -68,7 +100,11 @@ def main():
                 for key in list(os.environ):
                     if key.startswith(('PYTHON', 'DYLD_', 'SONG_AUDIT_', 'MUSIC_LIBRARY_')):
                         os.environ.pop(key, None)
-                os.environ['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin'
+                if mac:
+                    os.environ['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin'
+                else:
+                    windows = Path(os.environ.get('WINDIR', 'C:/Windows'))
+                    os.environ['PATH'] = os.pathsep.join(map(str, (windows / 'System32', windows)))
                 os.environ['SONG_AUDIT_MPG123_PATH'] = str(decoder)
                 check = subprocess.run([str(executable), '--scanner-worker', '--self-test'],
                                        capture_output=True, text=True, timeout=60, cwd=root)
@@ -90,10 +126,12 @@ def main():
                 retry = analyze_tracks(internal / 'canonical/scan_quality.py', music, inventory['tracks'][:1],
                                        root / 'frozen-paused', str(decoder), progress=frozen_progress, paused=paused.is_set)
                 assert acknowledged.is_set() and len(retry['records']) == 1
+                check_integrity(internal / 'canonical/scan_quality.py', root / 'integrity-frozen', str(decoder))
                 frozen = {'passed': True, 'native_architecture': expected, 'bundled_decoder_used': True,
                           'source_metrics_time_bins_and_spectrograms_exact': True,
                           'pause_resume_acknowledged': True, 'no_python_or_homebrew_on_path': True,
                           'normal_bundle_without_ui_driver': True}
+                frozen['duration_integrity_passed'] = True
             finally:
                 sys.executable = saved_executable
                 if prior_frozen is None and hasattr(sys, 'frozen'):
@@ -126,6 +164,7 @@ def main():
                       canonical_sha256=manifest['sha256'], original_hashes_unchanged=True,
                       pause_resume_acknowledged=True, cocoa_backend=backend,
                       native_gui_exercised=False,
+                      duration_integrity_passed=True,
                       frozen_bundle=frozen,
                       records=[dict(file=r['source_path'], grade=r['quality'], codec=r.get('codec'),
                                     duration_seconds=r.get('duration_seconds')) for r in result['records']])
