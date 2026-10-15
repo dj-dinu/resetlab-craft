@@ -9,14 +9,20 @@ audio you may share; audio, tags and artwork should remain unchanged.
 Use only a normal `Spectracraft.app` package from the maintainer. The separate
 CI app containing the UI driver is not a volunteer or public download. Record
 the ZIP SHA-256, app version, macOS version and Mac chip in your notes.
-Extract `Synthetic-audio-tests.zip` to start with the included generated audio.
-`Formats café % audio` tests six formats; `Batch 103 café % తెలుగు` tests
-automatic batching; `Pause and close` supplies a longer track for controls.
+The public beta app ZIP contains the app directly; it does not include test
+audio or a nested installer. Use copies of audio you are allowed to test.
+Some historical volunteer kits also contain `Synthetic-audio-tests.zip`:
+if you already have one, its `Formats café % audio`, `Batch 103 café % తెలుగు`
+and `Pause and close` folders are optional generated inputs. That old kit is
+not required. Download the current app through the [Mac guide](README.md).
 
 1. Download and extract the ZIP with Finder, move the app to Applications and
    open it normally. Record any security prompt and its exact wording. Test
-   builds are ad-hoc signed; Gatekeeper approval is not established. Do not
-   disable Gatekeeper globally. Report a blocked launch before proceeding.
+   builds are ad-hoc signed and not notarized. Use the guide's per-app first-launch
+   instructions only if you trust the download; keep Gatekeeper enabled.
+   Record blocked launches and distinguish an unverified-developer notice from
+   a detected-malware or damaged-app alert. An Apple developer membership is
+   not required to test the published beta.
 2. Add one file and then a folder through the native pickers. Cancel both and
    confirm the previous selection stays intact. Try Finder drops of a file and
    a folder into the app. Include percent signs, Telugu/non-Latin text, emoji,

@@ -2,8 +2,8 @@
 
 | Platform | Download and installation | Qualification |
 | --- | --- | --- |
-| [Windows x64](windows/README.md) | Public beta ZIP: 0.1.0-alpha.5 | Source, browser and packaged worker checks; positive user feedback. Known native/clean-machine gaps remain disclosed. |
-| [macOS Apple silicon](macos/README.md) | Volunteer test kit only; public Mac release pending | Native macOS 15 ARM64 source/package/UI automation; positive real-library feedback on a MacBook Air M4. |
+| [Windows x64](windows/README.md) | Public beta ZIP: 0.1.0-beta.1 | Source, browser and packaged worker checks; positive user feedback. Known native/clean-machine gaps remain disclosed. |
+| [macOS Apple silicon](macos/README.md) | Public unsigned beta ZIP: 0.1.0-beta.1, macOS 15+ | Native macOS 15 ARM64 source/package and 19 Cocoa UI checks; positive M4 feedback. Per-app first-launch instructions and checksum are in the Mac guide. |
 | macOS Intel | Source setup in the [Mac testing guide](macos/TESTING.md) | Native macOS 15 x64 source tests; no Intel app package qualified. |
 | [Linux](linux/README.md) | No supported package | Deferred and untested. |
 

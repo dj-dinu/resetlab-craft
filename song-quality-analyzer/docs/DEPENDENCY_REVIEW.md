@@ -1,5 +1,22 @@
 # Dependency review
 
+## Current public beta — October 15, 2026
+
+[Beta.1](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1)
+is public for Windows x64 and Apple silicon/macOS 15+. Both embedded runtimes
+were refreshed and verified: Python 3.13.16, OpenSSL 3.5.9 and Expat 2.8.5.
+Native package/source checks passed, public download hashes match, and matching
+platform source materials/notices are published alongside the apps. The bounded
+package advisory lookup found no matches; it does not cover every native risk.
+
+The owner chose to continue the unsigned/ad-hoc Mac beta without enrolling in
+the Apple Developer Program for now. Notarization is deferred, not a requirement
+for this beta's availability. The [Mac guide](platforms/macos/README.md) explains
+the first-launch notice and optional download check. Remaining native/manual
+qualification limits are disclosed in the release notes.
+
+## Historical inventory and findings
+
 Local evidence, updated October 14, 2026. This is an inventory, source/notice preparation and bounded advisory lookup, not a universal security certification.
 
 ## Windows beta materials

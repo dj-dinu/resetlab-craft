@@ -6,12 +6,48 @@
 
 Requires an M1 or newer Mac and macOS 15+. This beta is **ad-hoc signed and not notarized**. Intel Mac packages, older macOS and Linux are not qualified.
 
+We are distributing this community beta without the Apple Developer Program.
+An Apple developer membership is not required to download or use it.
+
 ## Install and open
 
 1. Download the **macos-arm64.zip** app asset. Most users do not need the source/dependency archives. No GitHub sign-in, Python or Homebrew is needed.
 2. Extract it with Finder and open **Spectracraft.app**. You may move it to Applications. The app is directly inside this ZIP, without the old nested test kit.
 3. If Apple blocks the first launch and you trust this download, choose **Done**, then **System Settings → Privacy & Security → Open Anyway** for Spectracraft, and confirm **Open**. Keep Gatekeeper enabled and follow administrator policy on managed devices. See [Apple's guidance](https://support.apple.com/en-us/102445).
 4. Use **Add music** for a file/folder, then **Analyze selected tracks**. **Aa** adjusts text size; the sun/moon button changes appearance. Both choices persist locally.
+
+### What the first-launch warning means
+
+The “developer cannot be verified” or “Apple could not verify it is free of malware”
+notice is expected for this beta: Apple has not verified its developer identity
+or notarized the app. That notice alone is not a malware-detection result, and
+it is not a guarantee that the app is safe. Read the source, test scope and
+download information before deciding whether to open it.
+
+Use only the versioned [GitHub release](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
+The per-app Open Anyway exception above leaves Mac security enabled. If the
+alert instead reports detected malware, says the app will damage your computer,
+or says it is damaged, stop and report the exact message. See
+[Apple's explanation of these different alerts](https://support.apple.com/en-us/102445).
+
+### Optional: check your downloaded ZIP
+
+In Terminal, run this for the original filename in Downloads:
+
+```sh
+shasum -a 256 "$HOME/Downloads/Spectracraft-0.1.0-beta.1-macos-arm64.zip"
+```
+
+For **beta.1**, the result must start with:
+
+```text
+1ed249054b5c9a3ce3e51710c08e2b5f29b6779bea3fb32edd68dd846dcc7e9d
+```
+
+If the browser renamed the ZIP or you saved it elsewhere, adjust the filename.
+If the hash differs, do not open that copy; download it again from the release
+page. A matching hash confirms the published bytes, not absence of malware.
+Other versions have different hashes; use their own release checksums.
 
 Analysis stays local and leaves samples, filenames, tags, artwork and DJ collections unchanged. No accounts, analytics or music uploads are added. Reports retain relative filenames; review them before sharing.
 
