@@ -1,15 +1,15 @@
 # ResetLab Craft
 
-An audio workshop for DJs and producers. ResetLab Craft is the parent brand for a family of focused local music tools. Spectracraft's first Windows public beta is available.
+An audio workshop for DJs and producers. ResetLab Craft is the parent brand for a family of focused local music tools. Spectracraft's Windows and Apple silicon public beta is available.
 
-**[Download Spectracraft for Windows x64](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip)** · [Release notes and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5)
+**[Windows x64](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-windows-x64.zip)** · **[Mac Apple silicon](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-macos-arm64.zip)** · [Beta.1 release notes, sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1)
 
-Extract the complete ZIP and open `Spectracraft.exe`, keeping `_internal` beside it. This is an unsigned early beta.
+Windows: extract the complete ZIP and open `Spectracraft.exe`, keeping `_internal` beside it. Mac: extract with Finder and open `Spectracraft.app` on an M1 or newer Mac with macOS 15+. Both are unsigned early betas; Mac is ad-hoc signed and not notarized. See the platform guides for first-launch instructions.
 
 | Platform | Status | Start here |
 | --- | --- | --- |
 | Windows x64 | Public beta available | [Download and installation](song-quality-analyzer/docs/platforms/windows/README.md) |
-| Mac Apple silicon | Tested candidate; public release pending | [Mac status and test kit](song-quality-analyzer/docs/platforms/macos/README.md) · [Release plan](song-quality-analyzer/docs/platforms/macos/RELEASE_PLAN.md) |
+| Mac Apple silicon | Unsigned public beta available, macOS 15+ | [Download and installation](song-quality-analyzer/docs/platforms/macos/README.md) |
 | Mac Intel | Native source tests passed; no app package qualified | [Native test scope](song-quality-analyzer/docs/platforms/macos/TESTING.md) |
 | Linux | Deferred; no package | [Linux status](song-quality-analyzer/docs/platforms/linux/README.md) |
 
@@ -17,7 +17,7 @@ Extract the complete ZIP and open `Spectracraft.exe`, keeping `_internal` beside
 
 | Tool | Purpose | Status |
 | --- | --- | --- |
-| Spectracraft | Spectral inspection, folder summaries and integrity checks | Windows public beta |
+| Spectracraft | Spectral inspection, folder summaries and integrity checks | Windows and Apple silicon public beta |
 | Keycraft | Musical key, BPM and harmonic-mixing assistance | Future concept |
 | Stemcraft | Reuse versioned separated stems where supported | Feasibility research |
 | Setcraft | Suggest the next song, transition cue points and optional wordplay links | Future concept |

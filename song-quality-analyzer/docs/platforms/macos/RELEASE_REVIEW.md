@@ -1,5 +1,9 @@
 # Mac release review — October 14, 2026
 
+> October 15 update: **[0.1.0-beta.1 is public](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1)** for Apple silicon/macOS 15+. The owner explicitly chose an unsigned/ad-hoc beta with the first-launch warning explained. The runtime was refreshed to Python 3.13.16/OpenSSL 3.5.9/Expat 2.8.5 and checked inside the package. Build 1001, matching sources/checksums, all 19 Cocoa UI checks and shutdown cleanup pass. Public app downloads match the tested hashes. Developer ID/notarization and remaining manual qualifications are future work; the original findings/plan below are historical and do not describe an unpatched current beta.
+
+## Historical review and plan
+
 Status: positive ARM64 candidate evidence; public Mac release remains pending.
 This review separates software tests from deployment/security qualification.
 

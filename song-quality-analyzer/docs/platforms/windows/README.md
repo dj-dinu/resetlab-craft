@@ -1,9 +1,9 @@
 # Spectracraft Windows public beta
 
-Published beta: **0.1.0-alpha.5**, Windows x64, portable ZIP.
+Published beta: **0.1.0-beta.1**, Windows x64, portable ZIP, October 15, 2026.
 The user approved proceeding with a Windows public beta on October 14, 2026,
 after reporting that beta testing looked good. The repository and
-[prerelease downloads](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5)
+[prerelease downloads](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1)
 are public. Source, dependency source/build materials and checksums accompany
 the Windows ZIP.
 
@@ -34,7 +34,7 @@ needed for normal use of the portable build.
 - Folder spectral-grade score, grade filters, title/artist sorting and evidence.
 - Automatic batches, overall progress and Pause/Resume. Stop retains completed
   batches; interrupted batches return no partial grades and can be selected again.
-- Dark/light appearance, smooth scrolling and tidy long-title display.
+- Dark/light appearance, saved Aa text sizing, smooth scrolling and tidy long-title display.
 - Local analysis that preserves audio, names, tags, artwork and DJ collections.
 
 ## Known limits and validation
@@ -51,17 +51,19 @@ Spectral coverage is not proof of listening quality, authenticity, original
 bitrate or a complete intended original recording. Noise can produce high
 frequency energy; a vintage master may have limited bandwidth and sound right.
 
-Executed checks: 83 application tests passed with one POSIX case skipped on
-Windows; 58 format/edge cases and 16 integrity cases passed; source and packaged
-worker comparisons and real-track Pause/Resume/Stop checks passed; a 103-track
-browser run completed as 50/50/3, with preserved file hashes and sanitized export.
-See [local test results](../../LOCAL_TEST_RESULTS.md) for scope.
+Beta.1: 87 application tests run successfully (one expected POSIX-name skip),
+six-format source/frozen comparisons and duration-integrity/pause cases pass.
+The downloaded package passes nine local synthetic/real HQ/MQ/LQ regressions,
+with exact measurements/bins/spectra and unchanged inputs. See the
+[native run](https://github.com/dj-dinu/resetlab-craft/actions/runs/38774791645)
+and [release notes](../../RELEASE_NOTES_0.1.0_BETA1.md). Historical broader edge
+harness results remain recorded in [local test results](../../LOCAL_TEST_RESULTS.md).
 
 User testing is positive. Clean-machine installation, native dialogs/drop,
 display-scale combinations, actual window shutdown and offline runtime traffic
-capture still need broader beta feedback. Neither Mac architecture nor Linux
-is an advertised beta platform. This is not a stable-release or universal
-security certification.
+capture still need broader beta feedback. Apple silicon has its own unsigned
+[Mac beta](../macos/README.md); Intel Mac packages and Linux remain unqualified.
+This is not a stable release.
 
 ## Feedback and reuse
 

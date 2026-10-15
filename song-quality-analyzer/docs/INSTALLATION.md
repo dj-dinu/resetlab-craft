@@ -1,13 +1,13 @@
 # Installation
 
 Choose the [Windows public beta](platforms/windows/README.md) or the
-[Apple silicon Mac candidate](platforms/macos/README.md). The Mac package is
-currently a volunteer test build, with public release gates still open. Linux
-is deferred. Run as a normal user; analysis does not need administrator access.
+[Apple silicon Mac public beta](platforms/macos/README.md). Beta.1 is public
+for both. Mac requires Apple silicon/macOS 15+, is ad-hoc signed and is not
+notarized. Linux is deferred. Run as a normal user; analysis does not need administrator access.
 
 ## Windows beta download
 
-1. [Download the complete Windows ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-alpha.5/Spectracraft-0.1.0-alpha.5-windows-x64.zip).
+1. [Download the complete Windows ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-windows-x64.zip).
 2. Extract it into a writable folder with a short path. Keep `Spectracraft.exe`
    beside `_internal`; do not copy only the executable.
 3. Open `Spectracraft.exe`. Use **Add music** for a folder or audio file, wait
@@ -15,22 +15,25 @@ is deferred. Run as a normal user; analysis does not need administrator access.
 
 The build is unsigned and uses Microsoft Edge WebView2 Runtime. Follow your
 device's security policy and report launch blocks. Review the
-[beta notes](platforms/windows/README.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5).
+[beta notes](platforms/windows/README.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
 
-## Mac test candidate
+## Mac beta download
 
-Use the [Mac overview](platforms/macos/README.md) for the test-kit download,
+Use the [Mac overview](platforms/macos/README.md) for the permanent app download,
 macOS/architecture scope, signing status and extraction steps. Python and
 Homebrew are not needed to run the packaged app. Follow the
 [volunteer checklist](platforms/macos/VOLUNTEER_TEST.md). A successful source
 test or launch does not qualify Gatekeeper or every native interaction.
 
-The current kit needs a bundled runtime security refresh before a public Mac
-release; see the [ordered release plan](platforms/macos/RELEASE_PLAN.md).
+Extract the ZIP with Finder and open Spectracraft.app. If Apple blocks the
+unsigned app and you trust it, use the per-app Open Anyway steps in the Mac
+guide; keep Gatekeeper enabled. Beta.1 includes the refreshed runtime. Remaining
+manual/native qualification limits are disclosed in the release notes.
 
 ## Current local Windows build
 
-The latest local build is alpha.5 at `dist/alpha5/Spectracraft`. Close the
+Use the published beta.1 ZIP for the current app. Local alpha.5 at
+`dist/alpha5/Spectracraft` is retained for comparison. Close the
 previous app before opening the new executable, and keep its complete
 `_internal` folder beside it. Use the complete versioned alpha.5 folder.
 
@@ -54,15 +57,15 @@ If the window cannot launch, the developer browser fallback below can help diagn
 
 ## Developer setup
 
-Python 3.12 is the existing qualification baseline. Use a maintained patched
-runtime and record the actual bundled native-library versions; the old Mac kit
-runtime is not the public-release target. From the project folder:
+Python 3.13.16 is the beta.1 baseline. Actual embedded OpenSSL 3.5.9 and
+Expat 2.8.5 are verified against the package manifest. Use the matching patched
+runtime for release reproduction; older Python 3.12 results are historical. From the project folder:
 
 For a suite checkout, first enter `song-quality-analyzer`. This public source
 checkout contains the exact generated canonical scanner. Installers/native
 decoder binaries are supplied separately as reviewed release/test assets.
-Native Mac source checks and an ARM64 package have been tested; public Mac
-distribution remains pending.
+Native Mac source checks and the public ARM64 package have been tested;
+remaining manual qualification is disclosed in the Mac guide.
 Use a short Windows checkout path, such as `C:\Projects\ResetLabCraft`.
 Deeply nested source checkouts can exceed Windows file-path limits when writing
 analysis caches; comprehensive long-path qualification remains pending.

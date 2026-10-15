@@ -1,7 +1,9 @@
-# Spectracraft 0.1.0-beta.1 — release candidate
+# Spectracraft 0.1.0-beta.1 — public beta
 
-This candidate prepares Windows x64 and Apple silicon macOS 15+ packages.
-It is not a stable release. Publication and final download verification are pending.
+Published October 15, 2026 for Windows x64 and Apple silicon macOS 15+.
+[Download apps, matching sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
+Both public downloads were verified without sign-in and match the tested hashes.
+This is an unsigned beta, not a stable release.
 
 ## Changes
 
@@ -25,10 +27,10 @@ it. Microsoft Edge WebView2 Runtime is required. The build is unsigned.
 
 Mac: extract the macos-arm64 ZIP with Finder and open Spectracraft.app.
 Apple silicon and macOS 15+ only; no Intel Mac package or Linux support is
-claimed. The candidate is ad-hoc signed and not notarized. Apple may block the
+claimed. The public beta is ad-hoc signed and not notarized. Apple may block the
 first launch; follow the per-app Privacy & Security instructions only if you
 trust the downloaded source. Do not disable Gatekeeper globally. The signing
-route is an owner release decision, not a software test result.
+route was explicitly chosen for this beta; it is not a notarization result.
 
 Native picker/save/drag gestures, clean-account installation, permission denial,
 runtime network capture and storage/cloud/device edge cases retain the documented
