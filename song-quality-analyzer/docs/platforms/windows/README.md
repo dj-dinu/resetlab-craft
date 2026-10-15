@@ -11,7 +11,9 @@ the Windows ZIP.
 
 1. Download the Windows ZIP from
    [GitHub Releases](https://github.com/dj-dinu/resetlab-craft/releases).
-2. Extract the complete ZIP into a writable folder with a short path.
+2. If you trust this release, right-click the original ZIP, choose **Properties → General**,
+   and select **Unblock → Apply** if that option is present. Then extract the complete ZIP
+   into a new writable folder with a short path.
    Keep `Spectracraft.exe` beside its `_internal` folder.
 3. Open `Spectracraft.exe` as a normal user. The app needs the
    [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
@@ -25,6 +27,21 @@ review the source and published checksums, and follow your device's security
 policy. Report a launch block rather than disabling security protections.
 No administrator access, developer Python, app account or subscription is
 needed for normal use of the portable build.
+
+### Startup error: Python.Runtime.Loader.Initialize
+
+If beta.1 reports `Failed to resolve Python.Runtime.Loader.Initialize`, Windows may
+have propagated the internet download marker from the ZIP onto `Python.Runtime.dll`.
+The exact failure was reproduced with the published DLL: it loads normally without
+that marker and fails when the disposable test copy has Internet-zone metadata.
+
+Close the error, use the **original ZIP's Properties → General → Unblock → Apply**
+step above, and extract into a **new folder**. Opening the already-extracted folder
+can repeat the failure because its DLLs retain the marker. This is a per-download
+trust decision; no Defender, SmartScreen or machine-wide setting needs changing.
+Follow administrator policy on managed computers. If Unblock is absent or the error
+persists after a fresh extraction, report the complete traceback for investigation.
+Microsoft explains the relevant [.NET assembly loading behavior](https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/loadfromremotesources-element).
 
 ## Included behavior
 
@@ -64,6 +81,12 @@ display-scale combinations, actual window shutdown and offline runtime traffic
 capture still need broader beta feedback. Apple silicon has its own unsigned
 [Mac beta](../macos/README.md); Intel Mac packages and Linux remain unqualified.
 This is not a stable release.
+
+The beta.1 worker/regression checks did not qualify a native Windows launch after
+browser download and Explorer extraction with the download marker retained. That
+gap caused the launch issue above. Future Windows package qualification must include
+both ordinary native startup and the marked-download path; passing scanner workers
+alone does not qualify the desktop bridge.
 
 ## Feedback and reuse
 

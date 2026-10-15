@@ -8,7 +8,8 @@ notarized. Linux is deferred. Run as a normal user; analysis does not need admin
 ## Windows beta download
 
 1. [Download the complete Windows ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-windows-x64.zip).
-2. Extract it into a writable folder with a short path. Keep `Spectracraft.exe`
+2. If you trust the release, open the original ZIP's **Properties → General** and
+   choose **Unblock → Apply** if shown. Extract into a new writable folder with a short path. Keep `Spectracraft.exe`
    beside `_internal`; do not copy only the executable.
 3. Open `Spectracraft.exe`. Use **Add music** for a folder or audio file, wait
    for metadata to load, then analyze. No developer Python installation is needed.
@@ -16,6 +17,11 @@ notarized. Linux is deferred. Run as a normal user; analysis does not need admin
 The build is unsigned and uses Microsoft Edge WebView2 Runtime. Follow your
 device's security policy and report launch blocks. Review the
 [beta notes](platforms/windows/README.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
+
+For `Failed to resolve Python.Runtime.Loader.Initialize`, see the
+[Windows startup fix](platforms/windows/README.md#startup-error-pythonruntimeloaderinitialize).
+Unblocking the ZIP before a fresh extraction prevents its download marker from
+continuing onto the .NET bridge DLL; it does not remove app-wide unsigned warnings.
 
 ## Mac beta download
 
