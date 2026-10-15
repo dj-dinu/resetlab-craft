@@ -1,13 +1,14 @@
 """Build-only driver for a separate CI app; absent from the distributable app.
 
 Uses real Cocoa/WKWebView, the shipped page, HTTP server and frozen worker.
-Only the save-dialog selection is substituted. This does not qualify Finder
+File/folder/save dialog selections are substituted. This does not qualify Finder
 drag, native pickers, TCC, Gatekeeper, trackpads or clean-user installation.
 """
 import sys
 
 if '--scanner-worker' not in sys.argv:
     import hashlib
+    import faulthandler
     import json
     import os
     from pathlib import Path
@@ -90,6 +91,7 @@ if '--scanner-worker' not in sys.argv:
             until(lambda: dom('!document.getElementById("export-button").disabled'), 'results rendered')
         def pause():
             until(lambda: dom('!document.getElementById("pause-button").disabled'), 'pause enabled')
+            assert job()['status'] == 'running', 'Control fixture finished before Pause was requested'
             click('pause-button')
             until(lambda: job()['progress'].get('paused') is True, 'decoder pause acknowledgment')
             until(lambda: dom('document.getElementById("pause-button").textContent === "Resume"'), 'resume control')
@@ -118,6 +120,22 @@ if '--scanner-worker' not in sys.argv:
             until(lambda: dom('!document.getElementById("theme-toggle").disabled'), 'appearance saved')
             assert dom('document.documentElement.dataset.theme') != initial
             check('appearance-toggle')
+            original_font = dom('parseFloat(getComputedStyle(document.getElementById("root-path")).fontSize)')
+            click('text-size-toggle')
+            for size in ('110', '125', '150'):
+                click('text-size-increase')
+                until(lambda: dom('!document.getElementById("text-size-reset").disabled'), 'text size saved')
+                assert dom('document.documentElement.dataset.textSize') == size
+            assert dom('document.getElementById("text-size-increase").disabled')
+            assert dom('parseFloat(getComputedStyle(document.getElementById("root-path")).fontSize)') > original_font * 1.49
+            from music_library_lab.server import interface_preferences
+            assert interface_preferences()['text_size'] == '150'
+            click('text-size-reset')
+            until(lambda: dom('!document.getElementById("text-size-reset").disabled'), 'default text size saved')
+            assert dom('document.documentElement.dataset.textSize') == '100'
+            assert interface_preferences()['text_size'] == '100'
+            click('text-size-toggle')
+            check('text-size-controls-and-saved-choice')
             screenshot('mac-ui-half-screen')
             pick(fixture_root / 'Formats café % audio', 'folder', 6)
             check('folder-picker-through-native-bridge', dialog_selection_substituted=True)
@@ -134,6 +152,20 @@ if '--scanner-worker' not in sys.argv:
             click('evidence-button-0')
             assert dom('!document.getElementById("timeline-0").hidden')
             check('evidence-expanded')
+            click('text-size-toggle')
+            for size in ('110', '125', '150'):
+                click('text-size-increase')
+                until(lambda: dom('!document.getElementById("text-size-reset").disabled'), 'large result text saved')
+            window.resize(420, 700)
+            until(lambda: dom('innerWidth <= 430'), 'narrow window with large text')
+            assert dom('document.documentElement.scrollWidth <= innerWidth + 2'), 'Large text overflows the narrow page'
+            assert dom('document.getElementById("track-count").textContent') == '6'
+            screenshot('mac-ui-large-text')
+            click('text-size-reset')
+            until(lambda: dom('!document.getElementById("text-size-reset").disabled'), 'restore result text size')
+            click('text-size-toggle')
+            window.resize(640, 700)
+            check('large-text-narrow-results', width=420, text_percent=150)
             target = report_path.parent / 'synthetic-export.json'
             # Exercise the real button/bridge/export sanitization, substituting
             # only a dialog's selected destination. Native dialog remains manual.
@@ -185,6 +217,10 @@ if '--scanner-worker' not in sys.argv:
             results['native_renderer'] = getattr(window.gui, 'renderer', None)
             results['backend_busy'] = session.state.busy
             results['backend_jobs'] = len(session.state.jobs)
+            current = job()
+            if current is not None:
+                results['last_audit'] = {key: current.get(key) for key in ('status', 'progress', 'error')}
+                results['last_audit']['pause_requested'] = current['pause_event'].is_set()
             try:
                 results['ui_diagnostic'] = dom('({count:document.getElementById("track-count").textContent, root:document.getElementById("root-path").value, alerts:document.getElementById("alerts").textContent, folderHidden:document.getElementById("browse-button").hidden, folderDisabled:document.getElementById("browse-button").disabled, pendingFolder:Object.keys(window.pywebview._returnValuesCallbacks.choose_folder||{}).length})')
             except Exception:
@@ -193,6 +229,8 @@ if '--scanner-worker' not in sys.argv:
         finally:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             report_path.write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
+            # Only this separate test app emits a bounded stack if closing hangs.
+            faulthandler.dump_traceback_later(25, file=sys.stderr)
             window.destroy()
 
     def start(*args, **kwargs):

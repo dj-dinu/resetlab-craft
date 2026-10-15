@@ -31,9 +31,14 @@ elif FROZEN:
 else:
     WORK = PROJECT / ".work"
 MAX_INVENTORIES = 3
+UI_PREFERENCE_CHOICES = {
+    "theme": ("system", "light", "dark"),
+    "scrolling": ("smooth", "native"),
+    "text_size": ("90", "100", "110", "125", "150"),
+}
 
 def interface_preferences():
-    defaults = {"theme": "system", "scrolling": "smooth"}
+    defaults = {"theme": "system", "scrolling": "smooth", "text_size": "100"}
     path = WORK / "ui-preferences.json"
     try:
         if path.stat().st_size > 4096:
@@ -41,7 +46,7 @@ def interface_preferences():
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
             return defaults
-        for key, choices in (("theme", ("system", "light", "dark")), ("scrolling", ("smooth", "native"))):
+        for key, choices in UI_PREFERENCE_CHOICES.items():
             if value.get(key) in choices:
                 defaults[key] = value[key]
     except (OSError, ValueError):
@@ -49,9 +54,9 @@ def interface_preferences():
     return defaults
 
 def save_interface_preferences(value):
-    choices = {"theme": ("system", "light", "dark"), "scrolling": ("smooth", "native")}
+    choices = UI_PREFERENCE_CHOICES
     if not value or any(key not in choices or value[key] not in choices[key] for key in value):
-        raise ValueError("Only appearance and scrolling preferences can be saved.")
+        raise ValueError("Only appearance, text size and scrolling preferences can be saved.")
     saved = interface_preferences() | value
     WORK.mkdir(parents=True, exist_ok=True)
     temporary = WORK / ("ui-preferences-" + uuid.uuid4().hex + ".tmp")
@@ -359,7 +364,8 @@ def make_handler(state):
                         if filename == "index.html":
                             preferences = interface_preferences()
                             content = content.replace(b'<html lang="en">',
-                                ('<html lang="en" data-initial-theme="' + preferences["theme"] + '">').encode())
+                                ('<html lang="en" data-initial-theme="' + preferences["theme"] +
+                                 '" data-initial-text-size="' + preferences["text_size"] + '">').encode())
                         self.send(content, content_type=kind)
             except Exception:
                 self.send({"error": "The local resource could not be loaded. Restart the app or check its installation."}, 500)

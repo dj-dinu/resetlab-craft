@@ -97,11 +97,13 @@ class LocalServerTests(unittest.TestCase):
 
     def test_preferences_survive_a_new_server_session_and_seed_initial_theme(self):
         self.assertEqual(self.request("/api/config")[1]["ui_preferences"],
-                         {"theme": "system", "scrolling": "smooth"})
+                         {"theme": "system", "scrolling": "smooth", "text_size": "100"})
         self.assertEqual(self.request("/api/preferences", {"theme": "dark"}),
-                         (200, {"theme": "dark", "scrolling": "smooth"}))
+                         (200, {"theme": "dark", "scrolling": "smooth", "text_size": "100"}))
         self.assertEqual(self.request("/api/preferences", {"scrolling": "native"}),
-                         (200, {"theme": "dark", "scrolling": "native"}))
+                         (200, {"theme": "dark", "scrolling": "native", "text_size": "100"}))
+        self.assertEqual(self.request("/api/preferences", {"text_size": "125"}),
+                         (200, {"theme": "dark", "scrolling": "native", "text_size": "125"}))
         # Desktop sessions use a fresh random port and session token. Storage must
         # survive that boundary without depending on origin-local browser storage.
         self.server.shutdown()
@@ -113,10 +115,10 @@ class LocalServerTests(unittest.TestCase):
         self.thread.start()
         self.base = f"http://127.0.0.1:{self.server.server_port}"
         self.assertEqual(self.request("/api/config")[1]["ui_preferences"],
-                         {"theme": "dark", "scrolling": "native"})
+                         {"theme": "dark", "scrolling": "native", "text_size": "125"})
         with urlopen(self.base + "/", timeout=5) as response:
             html = response.read().decode("utf-8")
-        self.assertIn('<html lang="en" data-initial-theme="dark">', html)
+        self.assertIn('<html lang="en" data-initial-theme="dark" data-initial-text-size="125">', html)
         self.assertFalse(list(self.preference_root.glob("ui-preferences-*.tmp")))
 
     def test_preference_writes_require_session_and_local_origin(self):
@@ -140,11 +142,13 @@ class LocalServerTests(unittest.TestCase):
             self.assertNotIn("unsafe-eval", response.headers["Content-Security-Policy"])
 
     def test_preference_payload_allowlist_preserves_existing_file(self):
-        self.assertEqual(self.request("/api/preferences", {"theme": "dark", "scrolling": "native"})[0], 200)
+        self.assertEqual(self.request("/api/preferences", {"theme": "dark", "scrolling": "native", "text_size": "100"})[0], 200)
         path = self.preference_root / "ui-preferences.json"
         before = path.read_bytes()
         for payload in ({}, {"theme": "unknown"}, {"scrolling": "instant"},
                         {"theme": ["dark"]}, {"theme": None}, {"path": "../outside.json"},
+                        {"text_size": "1000"}, {"text_size": 125}, {"text_size": ["125"]},
+                        {"text_size": '125" onmouseover="unsafe'},
                         {"theme": "light", "unknown": True}, ["dark"]):
             with self.subTest(payload=payload):
                 self.assertEqual(self.request("/api/preferences", payload)[0], 400)
@@ -153,20 +157,22 @@ class LocalServerTests(unittest.TestCase):
 
     def test_corrupt_preferences_recover_without_injecting_html(self):
         path = self.preference_root / "ui-preferences.json"
-        for text, expected in (("{broken", {"theme": "system", "scrolling": "smooth"}),
-                               ('["dark"]', {"theme": "system", "scrolling": "smooth"}),
-                               ("x" * 4097, {"theme": "system", "scrolling": "smooth"}),
+        for text, expected in (("{broken", {"theme": "system", "scrolling": "smooth", "text_size": "100"}),
+                               ('["dark"]', {"theme": "system", "scrolling": "smooth", "text_size": "100"}),
+                               ("x" * 4097, {"theme": "system", "scrolling": "smooth", "text_size": "100"}),
+                               (json.dumps({"theme": "system", "text_size": '150" unsafe'}),
+                                {"theme": "system", "scrolling": "smooth", "text_size": "100"}),
                                (json.dumps({"theme": '"><script>unsafe</script>', "scrolling": "native"}),
-                                {"theme": "system", "scrolling": "native"})):
+                                {"theme": "system", "scrolling": "native", "text_size": "100"})):
             with self.subTest(text=text[:40]):
                 path.write_text(text, encoding="utf-8")
                 self.assertEqual(self.request("/api/config")[1]["ui_preferences"], expected)
                 with urlopen(self.base + "/", timeout=5) as response:
                     html = response.read().decode("utf-8")
-                self.assertIn('<html lang="en" data-initial-theme="system">', html)
+                self.assertIn('<html lang="en" data-initial-theme="system" data-initial-text-size="100">', html)
                 self.assertNotIn("unsafe", html)
         self.assertEqual(self.request("/api/preferences", {"theme": "light"}),
-                         (200, {"theme": "light", "scrolling": "native"}))
+                         (200, {"theme": "light", "scrolling": "native", "text_size": "100"}))
 
     def test_failed_preference_replacement_keeps_prior_choice_and_removes_temp(self):
         self.assertEqual(self.request("/api/preferences", {"theme": "dark"})[0], 200)

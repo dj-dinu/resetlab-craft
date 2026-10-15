@@ -757,6 +757,43 @@
   dropZone.addEventListener("dragenter", () => dropZone.classList.add("drag-active"));
   dropZone.addEventListener("dragleave", (event) => { if (!dropZone.contains(event.relatedTarget)) dropZone.classList.remove("drag-active"); });
 
+  function updateTextSizeControls(saving = false) {
+    const text = window.ResetLabCraftTextSize;
+    const index = text ? text.sizes.indexOf(text.getSize()) : -1;
+    const disabled = saving || !state.config || !text;
+    $("text-size-decrease").disabled = disabled || index <= 0;
+    $("text-size-reset").disabled = disabled;
+    $("text-size-increase").disabled = disabled || index >= text.sizes.length - 1;
+  }
+
+  async function changeTextSize(value) {
+    if (!state.config || !window.ResetLabCraftTextSize) return;
+    window.ResetLabCraftTextSize.setSize(value);
+    updateTextSizeControls(true);
+    try { await api("/api/preferences", { text_size: value }); }
+    catch (error) { setAlert("error", "Text size changed for this session but could not be saved", errorMessage(error)); }
+    finally { updateTextSizeControls(); }
+  }
+
+  $("text-size-decrease").addEventListener("click", () => {
+    const text = window.ResetLabCraftTextSize;
+    if (text) changeTextSize(text.sizes[text.sizes.indexOf(text.getSize()) - 1]);
+  });
+  $("text-size-reset").addEventListener("click", () => changeTextSize("100"));
+  $("text-size-increase").addEventListener("click", () => {
+    const text = window.ResetLabCraftTextSize;
+    if (text) changeTextSize(text.sizes[text.sizes.indexOf(text.getSize()) + 1]);
+  });
+  document.addEventListener("click", (event) => {
+    if (!$("text-size-menu").contains(event.target)) $("text-size-menu").open = false;
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && $("text-size-menu").open) {
+      $("text-size-menu").open = false;
+      $("text-size-toggle").focus();
+    }
+  });
+
   $("theme-toggle").addEventListener("click", async () => {
     if (!state.config || !window.ResetLabCraftTheme) return;
     const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -987,9 +1024,11 @@
       state.config = await api("/api/config");
       if (state.config.ui_preferences) {
         if (window.ResetLabCraftTheme) window.ResetLabCraftTheme.setMode(state.config.ui_preferences.theme);
+        if (window.ResetLabCraftTextSize) window.ResetLabCraftTextSize.setSize(state.config.ui_preferences.text_size);
       }
       if (window.ResetLabCraftScroll) window.ResetLabCraftScroll.setMode("smooth");
       $("theme-toggle").disabled = false;
+      updateTextSizeControls();
       $("review-description").textContent = "Large folders are welcome. Selected tracks run automatically in A–Z batches of " + trackLimit() + "; existing HQ labels are checked again.";
       $("root-path").value = state.config.default_root || "";
       $("app-version").textContent = state.config.version ? "v" + state.config.version : "";

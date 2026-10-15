@@ -9,6 +9,10 @@ import sys
 import threading
 import zipfile
 from collections import deque
+# Preload the Windows DLL runtime before HTTP/analysis threads start. Other
+# platforms retain their established lazy import path.
+if os.name == "nt":
+    import numpy as _numpy_runtime
 from .inventory import music_source, safe_path as _safe_path, regular_file as _regular
 from .inventory import hash_file, SUPPORTED_EXTENSIONS
 

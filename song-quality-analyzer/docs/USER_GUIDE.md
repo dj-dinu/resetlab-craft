@@ -28,6 +28,13 @@ An error receives no grade. A reliable header/decoded-duration mismatch, unsuppo
 
 ## Appearance and scrolling
 
+Current source/preview builds have slightly larger default text. Open **Aa**
+beside the sun/moon button to decrease or increase text from 90% to 150%.
+Click the percentage to reset to the new default (100%). The choice is saved
+locally across app restarts on Windows and Mac. Escape closes the menu.
+Text sizing will be included in the next packaged public release; the existing
+published Windows alpha.5 ZIP is unchanged.
+
 The sun/moon button near the upper right switches Light/Dark and saves the choice locally. On first use the system appearance is followed until you choose one. Smooth scrolling is the preset; reduced motion, keyboard navigation, touch/fine gestures and nested/horizontal result scrolling keep native behavior.
 
 ## Your files and reports
