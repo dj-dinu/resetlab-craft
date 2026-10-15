@@ -9,6 +9,9 @@ import ctypes
 import hashlib
 import importlib.metadata as metadata
 import json
+import platform
+import pyexpat
+import ssl
 from pathlib import Path
 import sys
 from urllib.request import Request, urlopen
@@ -42,7 +45,9 @@ def main():
             if dependency.marker is None or dependency.marker.evaluate({'extra': ''}):
                 pending.append(dependency.name)
     report = {'packages': list(packages.values()), 'missing_dependencies': sorted(set(missing)),
-        'python_version': sys.version.split()[0], 'native_advisory_review_complete': False,
+        'python_version': platform.python_version(),
+        'runtime': {'python': platform.python_version(), 'openssl': ssl.OPENSSL_VERSION,
+                    'expat': pyexpat.EXPAT_VERSION}, 'native_advisory_review_complete': False,
         'redistribution_review_complete': False, 'source_and_relink_materials_complete': False}
     import av
     report['ffmpeg_library_versions'] = {key: list(value) for key, value in av.library_versions.items()}

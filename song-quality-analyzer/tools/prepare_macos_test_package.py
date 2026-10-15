@@ -39,6 +39,8 @@ def sha(path):
 
 
 def download(url, destination, expected=None):
+    if expected and destination.is_file() and sha(destination) == expected:
+        return dict(file=destination.name, url=url, sha256=expected, upstream_hash_verified=True)
     request = Request(url, headers={'User-Agent': 'Spectracraft-Mac-qualification'})
     with urlopen(request, timeout=60) as source, destination.open('wb') as output:
         total = 0
@@ -156,7 +158,7 @@ def main():
         'Shared native source materials contain additional Windows materials; Mac uses the same reviewed\n'
         'PyAV FFmpeg 9.0.2-1 recipe and mpg123 1.33.7 source plus its installed Homebrew formula.\n'
         'Each dependency retains its own license; do not assume all native libraries are LGPL.\n'
-        'For modified/relinked builds, recreate a native Python 3.12 environment, build native decoder\n'
+        'For modified/relinked builds, recreate the recorded native Python environment, build native decoder\n'
         'libraries using the supplied sources/recipes, then use the matching tools/build_desktop.py.\n'
         'Re-run package checks after changes. The separate --ui-test-driver app is never distributed.\n'
         'Source commit: ' + commit + '\n', encoding='utf-8')

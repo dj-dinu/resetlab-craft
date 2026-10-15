@@ -1,11 +1,15 @@
 name: macOS qualification
 on:
+  workflow_dispatch:
   push:
     branches: [codex/macos-qualification]
   pull_request:
-    paths: ['song-quality-analyzer/**', '.github/workflows/macos-qualification.yml']
+    paths: ['song-quality-analyzer/**', '!song-quality-analyzer/docs/**', '!song-quality-analyzer/*.md', '.github/workflows/macos-qualification.yml']
 permissions:
   contents: read
+concurrency:
+  group: macos-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   native-tests:
     name: macOS 15 ${{ matrix.architecture }}
@@ -28,8 +32,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: '3.12'
+          python-version: '3.13.16'
           architecture: ${{ matrix.architecture }}
+          cache: pip
+          cache-dependency-path: 'song-quality-analyzer/requirements*.txt'
       - name: Install native dependencies
         run: |
           brew install mpg123
@@ -47,7 +53,7 @@ jobs:
           node tests/test_cocoa_bridge.js
           python tools/validate_platform_smoke.py --report .work/macos-smoke.json
       - name: Build Apple silicon app and verify extracted package
-        if: matrix.architecture == 'arm64'
+        if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
         run: |
           python -m pip install -r requirements-build.txt numpy==2.3.5
           python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-arm64
@@ -57,20 +63,24 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent dist/macos-arm64/Spectracraft.app .work/mac-package/Spectracraft-apple-silicon-test.zip
           ditto -x -k .work/mac-package/Spectracraft-apple-silicon-test.zip .work/mac-unpacked
           python tools/validate_platform_smoke.py --bundle .work/mac-unpacked/Spectracraft.app --report .work/macos-frozen.json
-          python tools/audit_release_dependencies.py
+          python tools/audit_release_dependencies.py --query-advisories
       - name: Build isolated UI driver and exercise Cocoa window
-        if: matrix.architecture == 'arm64'
+        if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
         run: |
           python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-ui-test --ui-test-driver
           python tools/validate_macos_gui.py --bundle .work/mac-unpacked/Spectracraft.app --ui-test-bundle dist/macos-ui-test/Spectracraft.app --output .work/mac-gui-evidence
-      - name: Assemble volunteer kit and corresponding source materials
-        if: matrix.architecture == 'arm64'
-        run: python tools/prepare_macos_test_package.py --decoder "$SONG_AUDIT_MPG123_PATH"
+      - name: Assemble reviewed public beta candidate and exact sources
+        if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
+        run: python tools/prepare_public_beta.py --bundle .work/mac-unpacked/Spectracraft.app --decoder "$SONG_AUDIT_MPG123_PATH"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: matrix.architecture == 'arm64'
+        if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
         with:
-          name: Spectracraft-apple-silicon-volunteer-test
-          path: song-quality-analyzer/.work/mac-test-kit/
+          name: Spectracraft-beta1-macos-arm64
+          path: |
+            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.zip
+            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.txt
+            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.json
+            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.md
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

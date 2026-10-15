@@ -1,0 +1,80 @@
+name: Windows qualification
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['song-quality-analyzer/**', '!song-quality-analyzer/docs/**', '!song-quality-analyzer/*.md', '.github/workflows/windows-qualification.yml']
+permissions:
+  contents: read
+concurrency:
+  group: windows-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-tests:
+    runs-on: windows-2025
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: song-quality-analyzer
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13.16'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: 'song-quality-analyzer/requirements*.txt'
+      - name: Install reviewed dependencies and decoder
+        run: |
+          python -m pip install --only-binary=av,numpy -r requirements-desktop.txt numpy==2.3.5
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/fetch_windows_decoder.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "SONG_AUDIT_MPG123_PATH=$((Resolve-Path '.work/release-decoder/libmpg123-0.dll').Path)" >> $env:GITHUB_ENV
+          python -m pip check
+      - name: Test application and native codec paths
+        run: |
+          python tools/export_canonical_source.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python canonical/scan_quality.py --self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_quick.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/validate_platform_smoke.py --report .work/windows-smoke.json
+      - name: Build and qualify public beta candidate
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-')
+        run: |
+          python -m pip install -r requirements-build.txt numpy==2.3.5
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$env:SONG_AUDIT_MPG123_PATH" --dist-dir dist/beta1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/validate_platform_smoke.py --bundle dist/beta1/Spectracraft --report .work/windows-frozen.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/audit_release_dependencies.py --query-advisories
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/prepare_public_beta.py --bundle dist/beta1/Spectracraft --decoder "$env:SONG_AUDIT_MPG123_PATH"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-')
+        with:
+          name: Spectracraft-beta1-windows-x64
+          path: |
+            song-quality-analyzer/.work/public-beta-1/windows-x64/*.zip
+            song-quality-analyzer/.work/public-beta-1/windows-x64/*.txt
+            song-quality-analyzer/.work/public-beta-1/windows-x64/*.json
+            song-quality-analyzer/.work/public-beta-1/windows-x64/*.md
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: windows-package-evidence
+          path: |
+            song-quality-analyzer/.work/windows-smoke.json
+            song-quality-analyzer/.work/windows-frozen.json
+            song-quality-analyzer/.work/release-dependency-review.json
+            song-quality-analyzer/.work/desktop-build/completed-build.json
+          if-no-files-found: warn
+          retention-days: 14
