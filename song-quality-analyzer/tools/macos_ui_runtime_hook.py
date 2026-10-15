@@ -8,6 +8,7 @@ import sys
 
 if '--scanner-worker' not in sys.argv:
     import hashlib
+    import faulthandler
     import json
     import os
     from pathlib import Path
@@ -223,6 +224,8 @@ if '--scanner-worker' not in sys.argv:
         finally:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             report_path.write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
+            # Only this separate test app emits a bounded stack if closing hangs.
+            faulthandler.dump_traceback_later(25, file=sys.stderr)
             window.destroy()
 
     def start(*args, **kwargs):

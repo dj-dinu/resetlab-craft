@@ -77,13 +77,27 @@ def main():
     fixtures = output / 'fixtures'
     create_audio(fixtures / 'Formats café % audio', gui=True)
     report_path = output / 'mac-ui.json'
+    report_path.unlink(missing_ok=True)
     env = environment(output / 'ui-cache')
     env['SPECTRACRAFT_UI_FIXTURES'] = str(fixtures)
     env['SPECTRACRAFT_UI_REPORT'] = str(report_path)
     with (output / 'instrumented-ui.log').open('wb') as log:
         proc = subprocess.Popen([str(executable(args.ui_test_bundle))], env=env, cwd=output, stdout=log, stderr=log)
         try:
-            returncode = proc.wait(timeout=420)
+            deadline = time.monotonic() + 420
+            close_deadline = None
+            while proc.poll() is None:
+                if close_deadline is None and report_path.is_file():
+                    try:
+                        completed = json.loads(report_path.read_text())
+                    except (OSError, ValueError):
+                        completed = {}
+                    if 'passed' in completed:
+                        close_deadline = time.monotonic() + 35
+                if time.monotonic() >= deadline or (close_deadline is not None and time.monotonic() >= close_deadline):
+                    raise subprocess.TimeoutExpired([str(executable(args.ui_test_bundle))], 35 if close_deadline else 420)
+                time.sleep(.2)
+            returncode = proc.returncode
             if report_path.is_file():
                 print(report_path.read_text(), flush=True)
             if returncode:
@@ -92,6 +106,14 @@ def main():
                 details = re.sub(r'#token=[^\s\"\x27<>]+', '#token=[redacted]', details)
                 print(details, flush=True)
             assert returncode == 0, 'Packaged UI flow failed; inspect mac-ui.json and instrumented-ui.log'
+        except subprocess.TimeoutExpired:
+            log.flush()
+            details = (output / 'instrumented-ui.log').read_text(errors='replace')[-12000:]
+            details = re.sub(r'#token=[^\s\"\x27<>]+', '#token=[redacted]', details)
+            print(details, flush=True)
+            if report_path.is_file():
+                print(report_path.read_text(), flush=True)
+            raise
         finally:
             if proc.poll() is None:
                 proc.kill()

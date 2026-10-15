@@ -9,9 +9,10 @@ import sys
 import threading
 import zipfile
 from collections import deque
-# Initialize the native array runtime before the HTTP/analysis threads start.
-# First importing its Windows DLLs from a worker can stall concurrent requests.
-import numpy as np
+# Preload the Windows DLL runtime before HTTP/analysis threads start. Other
+# platforms retain their established lazy import path.
+if os.name == "nt":
+    import numpy as _numpy_runtime
 from .inventory import music_source, safe_path as _safe_path, regular_file as _regular
 from .inventory import hash_file, SUPPORTED_EXTENSIONS
 
@@ -39,6 +40,8 @@ def spectrogram_data(record: dict) -> dict | None:
     """Downsample scanner-owned power arrays for display, never for grading."""
     if not record.get("spectrum_file"):
         return None
+    import numpy as np
+
     with zipfile.ZipFile(record["spectrum_file"]) as archive:
         if sum(member.file_size for member in archive.infolist()) > 128 * 1024 * 1024:
             record["spectrogram_note"] = "This track's spectrum exceeds the local preview memory budget. Its full-duration grade is still reported."
