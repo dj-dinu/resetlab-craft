@@ -1,0 +1,94 @@
+name: macOS qualification
+on:
+  push:
+    branches: [codex/macos-qualification]
+  pull_request:
+    paths: ['song-quality-analyzer/**', '.github/workflows/macos-qualification.yml']
+permissions:
+  contents: read
+jobs:
+  native-tests:
+    name: macOS 15 ${{ matrix.architecture }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    env:
+      EXPECTED_ARCHITECTURE: ${{ matrix.architecture }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            architecture: x64
+          - runner: macos-15
+            architecture: arm64
+    defaults:
+      run:
+        working-directory: song-quality-analyzer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.architecture }}
+      - name: Install native dependencies
+        run: |
+          brew install mpg123
+          echo "SONG_AUDIT_MPG123_PATH=$(brew --prefix mpg123)/lib/libmpg123.0.dylib" >> "$GITHUB_ENV"
+          python -m pip install --only-binary=av,numpy -r requirements-desktop.txt numpy==2.3.5
+          python -m pip check
+      - name: Verify canonical source and signal rules
+        run: |
+          python tools/export_canonical_source.py --check
+          python canonical/scan_quality.py --self-test
+      - name: Test application and native codec paths
+        run: |
+          python -m unittest discover -s tests
+          node tests/test_library_view.js
+          node tests/test_cocoa_bridge.js
+          python tools/validate_platform_smoke.py --report .work/macos-smoke.json
+      - name: Build Apple silicon app and verify extracted package
+        if: matrix.architecture == 'arm64'
+        run: |
+          python -m pip install -r requirements-build.txt numpy==2.3.5
+          python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-arm64
+          codesign --verify --deep --strict dist/macos-arm64/Spectracraft.app
+          mkdir -p .work/mac-package .work/mac-unpacked
+          cp .work/desktop-build/completed-build.json .work/mac-package/build-manifest.json
+          ditto -c -k --sequesterRsrc --keepParent dist/macos-arm64/Spectracraft.app .work/mac-package/Spectracraft-apple-silicon-test.zip
+          ditto -x -k .work/mac-package/Spectracraft-apple-silicon-test.zip .work/mac-unpacked
+          python tools/validate_platform_smoke.py --bundle .work/mac-unpacked/Spectracraft.app --report .work/macos-frozen.json
+          python tools/audit_release_dependencies.py
+      - name: Build isolated UI driver and exercise Cocoa window
+        if: matrix.architecture == 'arm64'
+        run: |
+          python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-ui-test --ui-test-driver
+          python tools/validate_macos_gui.py --bundle .work/mac-unpacked/Spectracraft.app --ui-test-bundle dist/macos-ui-test/Spectracraft.app --output .work/mac-gui-evidence
+      - name: Assemble volunteer kit and corresponding source materials
+        if: matrix.architecture == 'arm64'
+        run: python tools/prepare_macos_test_package.py --decoder "$SONG_AUDIT_MPG123_PATH"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.architecture == 'arm64'
+        with:
+          name: Spectracraft-apple-silicon-volunteer-test
+          path: song-quality-analyzer/.work/mac-test-kit/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && matrix.architecture == 'arm64'
+        with:
+          name: macos-packaged-test-evidence-arm64
+          path: |
+            song-quality-analyzer/.work/macos-frozen.json
+            song-quality-analyzer/.work/mac-package/build-manifest.json
+            song-quality-analyzer/.work/release-dependency-review.json
+            song-quality-analyzer/.work/mac-gui-evidence/*.json
+            song-quality-analyzer/.work/mac-gui-evidence/*.png
+          if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-smoke-${{ matrix.architecture }}
+          path: song-quality-analyzer/.work/macos-smoke.json
+          if-no-files-found: error
+          retention-days: 14

@@ -2,6 +2,22 @@
 
 Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
 
+## Current cross-platform review — October 14, 2026
+
+The [Mac release review](platforms/macos/RELEASE_REVIEW.md) is the current
+cross-platform status. Native macOS 15 Intel/ARM64 each passed 87 application
+tests; ARM64 also passed extracted-package/frozen checks, ordinary launch/quit
+and 17 instrumented Cocoa UI checks. Positive M4 volunteer feedback covers real
+folder and single-file analysis. The Mac kit needs a runtime security refresh
+and remaining manual/signing qualification before public release.
+
+The latest local recheck ran 87 tests: 86 passed and one POSIX filename test
+was skipped on Windows. One initial Windows transport error was retained;
+the isolated auth/pause check and complete unchanged rerun passed. Both
+JavaScript checks, six-format source smoke, 56 current format/edge cases,
+16 integrity cases and nine existing Windows frozen-worker comparisons pass.
+Historical counts below describe their original runs rather than this rerun.
+
 ## Alpha.5 automatic batches and pause validation — October 14, 2026
 
 Selected tracks run in title A–Z order through automatic batches of 50.
@@ -33,8 +49,9 @@ Current engine SHA-256:
 `b1a7509f684641c6d23b381bea4853f4c87e94135227917a67bad9d9e5ccf0c8`.
 The complete local Windows bundle is `dist/alpha5/Spectracraft`.
 Native clean Windows installation, window/dialog/drop, display scaling,
-shutdown and offline traffic capture remain release gates. Neither macOS
-architecture has been built or tested natively. No new publication occurred.
+shutdown and offline traffic capture remain broader beta checks. At this
+Windows build checkpoint Mac was not yet tested; the current review above
+supersedes that historical status. No new publication occurred in that check.
 
 ## Alpha.4 window resize validation — October 14, 2026
 
@@ -160,7 +177,8 @@ These host timings are observations, not performance promises for other machines
 | --- | --- |
 | Native Windows window, choose/save dialogs, cancel and close during work | Not manually qualified. |
 | Clean Windows machine without developer Python/DJ software | Not tested. |
-| Native macOS Intel / Apple Silicon package | Neither built nor tested natively. Qualify each architecture advertised. |
+| Native macOS Apple silicon package | Normal package/frozen/UI automation and positive M4 feedback; runtime refresh, native manual/download/signing gates open. |
+| Native macOS Intel package | Source suite passes natively; no Intel app package qualified. |
 | Linux | Deferred and untested. |
 | Offline/outbound capture for actual native runtimes | Pending. App source has no telemetry/upload service; finite decoder probes do not certify every OS component. |
 | Multi-hour/large-library peak resources; slow, removable, cloud or restricted storage; disk full | Broad qualification pending. |

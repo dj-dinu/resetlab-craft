@@ -5,6 +5,7 @@ import argparse
 from http.server import ThreadingHTTPServer
 import json
 import os
+import sys
 from pathlib import Path
 import threading
 import time
@@ -206,6 +207,7 @@ def main():
     import webview
     session = LocalSession(args.scanner, args.decoder)
     bridge = DesktopBridge(session, webview)
+    restore_cocoa = None
     session.start()
     try:
         window = webview.create_window(
@@ -215,6 +217,9 @@ def main():
             background_color="#f6f5f0",
         )
         bridge._window = window
+        if sys.platform == 'darwin':
+            from .cocoa_bridge import install_cocoa_bridge
+            restore_cocoa = install_cocoa_bridge(window)
         window.events.loaded += bridge._bind_drop
         # Windows uses the installed Edge WebView2 runtime; macOS uses WKWebView.
         renderer = "edgechromium" if os.name == "nt" else None
@@ -222,6 +227,8 @@ def main():
     finally:
         bridge._unbind_drop()
         session.stop()
+        if restore_cocoa is not None:
+            restore_cocoa()
 
 
 if __name__ == "__main__":

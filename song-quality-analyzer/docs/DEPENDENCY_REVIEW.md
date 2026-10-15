@@ -22,9 +22,36 @@ and [FFmpeg distribution guidance](https://ffmpeg.org/legal.html) explain the
 relevant build and source boundaries.
 
 These additions do not change the tested analyzer code or native libraries.
-The beta is unsigned, Windows x64 only, and broader native security/install
+The published beta is unsigned, Windows x64 only, and broader native security/install
 qualification remains part of beta testing. Publication and downloadable
 asset hashes must be verified before announcing the release.
+
+## Mac candidate review — October 14
+
+The Mac kit contains matching project source, 23 source archives/receipts,
+native source/build materials and notices. Its 79 listed checksums were
+reverified. This is separate from the older Windows advisory result below.
+
+The exact Mac build uses Python 3.12.10, OpenSSL 3.0.16, Expat 2.7.1, NumPy
+2.3.5, Mutagen 1.47.0, PyAV 19.0.0, pywebview 6.2.1, FFmpeg 9.0.2 and mpg123
+1.33.7. A fresh OSV query for its 20 recorded PyPI package/version pairs found
+zero advisory matches. Only public names/versions were submitted; native
+libraries and the interpreter are outside that result.
+
+**Public Mac gate: refresh the bundled runtime.** Python/OpenSSL/Expat lack
+later upstream security fixes. No Spectracraft exploit was demonstrated, but
+the current inventory is not security-complete. Use an updated supported
+runtime with patched embedded libraries, then rerun source/frozen/UI and exact
+regression checks and regenerate corresponding sources/checksums. See
+[Python's Expat fix](https://www.python.org/downloads/release/python-31212/) and
+[OpenSSL advisories](https://www.openssl-library.org/news/vulnerabilities-3.0/index.html).
+
+PyAV 19.0.1 fixes a stream reference cycle; consider it during that rebuild
+and check large-batch memory. This was not a matched security advisory.
+See the [upstream release](https://github.com/PyAV-Org/PyAV/releases/tag/v19.0.1).
+The [Mac release review](platforms/macos/RELEASE_REVIEW.md) records actual scope
+and open native/signing/manual checks. Do not mark all native review flags
+complete based on a package lookup or the presence of source materials.
 
 ## Earlier advisory inventory
 

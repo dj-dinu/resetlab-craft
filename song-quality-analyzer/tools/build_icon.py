@@ -1,4 +1,4 @@
-"""Render the app's existing SVG mark into a build-only Windows icon.
+"""Render the app's existing SVG mark into a build-only desktop icon.
 
 This intentionally supports only the small SVG vocabulary used by mark.svg.
 An unsupported logo edit fails the build instead of silently dropping artwork.
@@ -103,7 +103,10 @@ def write_icon(source: Path, destination: Path) -> Path:
         else:
             raise ValueError("Icon source uses an unsupported SVG element: " + tag)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    image.save(destination, format="ICO", sizes=[(size, size) for size in ICON_SIZES])
+    if destination.suffix.lower() == ".icns":
+        image.save(destination, format="ICNS")
+    else:
+        image.save(destination, format="ICO", sizes=[(size, size) for size in ICON_SIZES])
     return destination
 
 

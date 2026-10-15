@@ -46,10 +46,13 @@ def main():
         'redistribution_review_complete': False, 'source_and_relink_materials_complete': False}
     import av
     report['ffmpeg_library_versions'] = {key: list(value) for key, value in av.library_versions.items()}
-    libraries = PROJECT / '.localdeps/av.libs'
-    if sys.platform == 'win32' and libraries.is_dir():
-        codec = ctypes.CDLL(str(next(libraries.glob('avcodec-*.dll')).resolve()))
-        util = ctypes.CDLL(str(next(libraries.glob('avutil-*.dll')).resolve()))
+    av_package = Path(av.__file__).resolve().parent
+    candidates = [av_package.parent / 'av.libs', av_package / '.dylibs']
+    libraries = next((p for p in candidates if p.is_dir()), None)
+    suffix = '*.dylib' if sys.platform == 'darwin' else '*.dll'
+    if sys.platform in {'win32', 'darwin'} and libraries:
+        codec = ctypes.CDLL(str(next(p for p in libraries.glob(suffix) if 'avcodec' in p.name).resolve()))
+        util = ctypes.CDLL(str(next(p for p in libraries.glob(suffix) if 'avutil' in p.name).resolve()))
         codec.avcodec_license.restype = ctypes.c_char_p
         codec.avcodec_configuration.restype = ctypes.c_char_p
         util.av_version_info.restype = ctypes.c_char_p
@@ -57,7 +60,7 @@ def main():
             'reported_license': codec.avcodec_license().decode(),
             'configuration': codec.avcodec_configuration().decode()}
         report['native_files'] = [{'name': path.name,
-            'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in sorted(libraries.glob('*.dll'))]
+            'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in sorted(libraries.glob(suffix))]
     if args.query_advisories:
         queries = [{'package': {'name': row['name'], 'ecosystem': 'PyPI'},
             'version': row['version']} for row in report['packages']]

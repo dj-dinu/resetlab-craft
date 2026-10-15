@@ -35,13 +35,30 @@ release, native Mac/Linux support or a universal privacy/security guarantee.
 
 ## Continued qualification
 
+### Mac candidate and public-release gates
+
+Mac native source tests now pass on macOS 15 Intel and ARM64 (87 application
+tests per architecture). ARM64 also passed a normal extracted `.app` launch,
+source/frozen comparisons and 17 separate instrumented Cocoa UI checks. A
+MacBook Air M4 volunteer supplied positive real-library feedback. Those results
+do not qualify an Intel installer or every native dialog/download flow.
+
+The current Mac test runtime contains Python 3.12.10, OpenSSL 3.0.16 and Expat
+2.7.1; refresh it for later upstream security fixes before public release, then
+repeat native package/regression/source-material checks. Signing/notarization
+and remaining explicit volunteer confirmations are open. Follow the
+[Mac release plan](platforms/macos/RELEASE_PLAN.md) and
+[review record](platforms/macos/RELEASE_REVIEW.md). No Mac release has been published.
+
+### Windows beta follow-up
+
 Clean Windows installation, native pickers/drop, display scaling/snapping,
 window shutdown, outbound runtime traffic capture, storage pressure and
 broader device/usability testing remain work for the beta. Use the
 [native beta guide](BETA_TEST_GUIDE.md) to collect concrete results.
 
-Mac Intel and Apple Silicon need separate builds and native qualification
-before being advertised. Linux is deferred. A paid website, automatic updater
+Mac architecture and package claims must stay within the evidence above.
+Linux is deferred. A paid website, automatic updater
 and other suite tools remain future concepts; no such services are included.
 
 ## Disclosed limits

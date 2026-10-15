@@ -133,7 +133,8 @@ class State:
             self.scanner = bundled_scanner
         else:
             self.scanner = Path(scanner or os.getenv("MUSIC_LIBRARY_SCANNER") or config.get("scanner_path", str(bundled_scanner)))
-        bundled_decoder = PROJECT / "decoder" / "libmpg123-0.dll"
+        decoder_name = "libmpg123.0.dylib" if sys.platform == "darwin" else "libmpg123-0.dll"
+        bundled_decoder = PROJECT / "decoder" / decoder_name
         self.decoder = decoder or os.getenv("SONG_AUDIT_MPG123_PATH") or config.get("decoder_path", "") or (str(bundled_decoder) if bundled_decoder.is_file() else "")
         self.token = secrets.token_urlsafe(32)
         self.jobs = {}

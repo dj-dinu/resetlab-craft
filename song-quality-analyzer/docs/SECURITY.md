@@ -2,7 +2,22 @@
 
 Alpha.2 drop paths pass the same ordinary-file/folder boundary as picker paths. Only one source is accepted; URLs, links, unsupported files and busy-operation drops are refused. No file bytes are uploaded. The pinned pywebview 6.2.1 adapter uses native event dispatch and `run_js` to retain the existing CSP without `eval` or `unsafe-eval`. It relies on pywebview internals for path resolution; requalify it before upgrades. Actual OS gestures remain unqualified. The in-app demo endpoint/default path were removed.
 
-Status: local alpha, October 12, 2026. A public binary release is not yet qualified. This review is evidence of specific boundaries, not a guarantee that arbitrary hostile files or every platform are safe.
+Status updated October 14, 2026: Windows 0.1.0-alpha.5 is a public early beta
+with disclosed gaps. The Mac candidate remains under qualification. The
+underlying boundary review began October 12; it is evidence of specific
+controls, not a guarantee that arbitrary hostile files or every platform are safe.
+
+Native Mac testing found pywebview-generated wrappers incompatible with the
+strict WKWebView CSP. The scoped adapter uses ordinary closures and native
+completion results, permits only five public bridge methods and the document
+drop event, and refuses private attribute traversal. Protocol checks execute
+with dynamic code generation disabled. CSP and local-origin checks remain.
+See [Mac testing](platforms/macos/TESTING.md).
+
+The exact Mac candidate needs a bundled Python/OpenSSL/Expat security refresh;
+the fresh 20-package OSV no-match result does not cover those native components.
+No app exploit was demonstrated. See the [dependency review](DEPENDENCY_REVIEW.md)
+and [Mac release plan](platforms/macos/RELEASE_PLAN.md).
 
 ## Boundaries checked
 
@@ -18,9 +33,15 @@ Status: local alpha, October 12, 2026. A public binary release is not yet qualif
 
 Protocol controls follow the [FFmpeg protocol documentation](https://ffmpeg.org/ffmpeg-protocols.html) and [format context allowlists](https://www.ffmpeg.org/doxygen/8.1/structAVFormatContext.html). Platform renderer requirements are documented by [pywebview](https://pywebview.flowrl.com/guide/installation.html).
 
-## Required before release
+## Continued beta and Mac release qualification
 
-Run actual native Windows/Mac install, dialogs, cancellation and shutdown checks; perform an outbound-network capture on clean machines with local audio; verify report redaction with representative private filenames; audit dependency/native-library versions for security updates and redistribution obligations; profile long/large/malformed input behavior; settle cache retention; scrub release contents; and choose the project license.
+Broaden actual native install/dialog/cancellation/shutdown checks; perform an
+outbound-network capture on clean machines with local audio; audit native
+versions/security fixes and corresponding source obligations; and profile
+storage/resource edge cases. Report redaction and bounded cache safety have
+specific automated coverage; do not generalize it to every machine. GPLv3-only
+is selected for project-owned code. Scrub each final release asset and verify
+its source correspondence, signature status and download hashes.
 
 The executed Python dependency lookup returned no advisory matches across 19 installed packages. Native libraries remain a separate review; see [dependency review](DEPENDENCY_REVIEW.md). The 10,001-candidate inventory, 20-minute analysis and real-child backend shutdown checks pass. Six cache safety tests pass; active/legacy/unrecognized data are preserved and disk footprint is not capped by bytes. Use the [native beta guide](BETA_TEST_GUIDE.md) for the remaining manual qualification.
 

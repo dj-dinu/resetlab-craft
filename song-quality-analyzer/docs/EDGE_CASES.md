@@ -1,6 +1,12 @@
 # Analyzer use cases and edge cases
 
-Updated October 12, 2026. This checklist distinguishes implemented behavior, executed local evidence and still-pending public qualification. The current private alpha supports MP3, WAV, AIFF, FLAC, AAC and ALAC through the one canonical scanner. Analysis is read-only and limited to 50 selected tracks per run; the manager is on hold.
+Updated October 14, 2026. This checklist distinguishes implemented behavior,
+executed evidence and pending platform qualification. MP3, WAV, AIFF, FLAC, AAC
+and ALAC use the one canonical scanner. Analysis is read-only and automatically
+continues in alphabetical batches of 50; 50 is not a selection limit. The manager
+is on hold. See [platform status](platforms/README.md) and the
+[current review](platforms/macos/RELEASE_REVIEW.md); dated results below retain
+their original test counts.
 
 ## Fixed grading and interpretation rules
 
