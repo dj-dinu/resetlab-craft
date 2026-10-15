@@ -35,20 +35,22 @@ release, native Mac/Linux support or a universal privacy/security guarantee.
 
 ## Continued qualification
 
-### Mac candidate and public-release gates
+### Mac unsigned public beta and follow-up
 
 Mac native source tests now pass on macOS 15 Intel and ARM64 (87 application
 tests per architecture). ARM64 also passed a normal extracted `.app` launch,
-source/frozen comparisons and 17 separate instrumented Cocoa UI checks. A
+source/frozen comparisons and 19 separate instrumented Cocoa UI checks. A
 MacBook Air M4 volunteer supplied positive real-library feedback. Those results
 do not qualify an Intel installer or every native dialog/download flow.
 
-The current Mac test runtime contains Python 3.12.10, OpenSSL 3.0.16 and Expat
-2.7.1; refresh it for later upstream security fixes before public release, then
-repeat native package/regression/source-material checks. Signing/notarization
-and remaining explicit volunteer confirmations are open. Follow the
+Beta.1 is public with verified embedded Python 3.13.16, OpenSSL 3.5.9 and Expat
+2.8.5, matching sources and checksums. Public downloads match the tested bytes.
+The owner chose the unsigned/ad-hoc route and deferred Apple Developer Program
+enrollment for now. Signing/notarization are optional future work; explicit
+native/manual qualification still needs broader feedback. Follow the
 [Mac release plan](platforms/macos/RELEASE_PLAN.md) and
-[review record](platforms/macos/RELEASE_REVIEW.md). No Mac release has been published.
+[review record](platforms/macos/RELEASE_REVIEW.md) and
+[first-launch guide](platforms/macos/README.md).
 
 ### Windows beta follow-up
 

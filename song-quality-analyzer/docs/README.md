@@ -4,7 +4,7 @@
 
 - [Platforms and downloads](platforms/README.md): Windows, Mac and Linux status.
 - [Windows beta](platforms/windows/README.md): download, start and known limits.
-- [Mac candidate](platforms/macos/README.md): test kit, supported scope and remaining work.
+- [Mac public beta](platforms/macos/README.md): download, first-launch warning, checksum and supported scope.
 - [Installation](INSTALLATION.md) and the [user guide](USER_GUIDE.md).
 - [Quality rules](QUALITY_RULES.md), [folder scores and integrity](FOLDER_SUMMARY_AND_INTEGRITY.md),
   [supported formats](FORMAT_SUPPORT.md) and [privacy](PRIVACY.md).
