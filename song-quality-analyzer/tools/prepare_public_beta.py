@@ -20,6 +20,12 @@ from music_library_lab import __version__, BUILD_NUMBER
 from tools.prepare_macos_test_package import download, sha, SHARED_SOURCES_URL, SHARED_SOURCES_SHA
 
 
+def require_no_python_advisories(inventory):
+    findings = [f"{row['name']}=={row['version']}: {', '.join(row['advisory_ids'])}"
+        for row in inventory['python_package_advisories'] if row['advisory_ids']]
+    assert not findings, 'Unresolved Python package advisories: ' + '; '.join(findings)
+
+
 def collect_sources(target, inventory, decoder):
     sources = target / 'sources'
     sources.mkdir()
@@ -122,13 +128,16 @@ def main():
     assert manifest['runtime']['openssl'].startswith('OpenSSL 3.5.9 ')
     assert manifest['runtime']['expat'] == 'expat_2.8.5'
     assert not inventory['missing_dependencies']
-    assert not any(row['advisory_ids'] for row in inventory['python_package_advisories'])
+    require_no_python_advisories(inventory)
     if mac:
         gui = json.loads((PROJECT / '.work/mac-gui-evidence/mac-ui.json').read_text())
         normal = json.loads((PROJECT / '.work/mac-gui-evidence/normal-launch.json').read_text())
         frozen = json.loads((PROJECT / '.work/macos-frozen.json').read_text())
         assert gui['passed'] and len(gui['checks']) >= 19 and gui['close_reaped_worker_and_server']
-        assert normal['native_quit_clean'] and frozen['frozen_bundle']['passed']
+        assert normal['passed'] and normal['native_quit_clean']
+        assert normal['desktop_check']['native_window_loaded']
+        assert normal['desktop_check']['bridge_ready'] and normal['desktop_check']['server_stopped']
+        assert frozen['frozen_bundle']['passed']
         plist = plistlib.loads((args.bundle / 'Contents/Info.plist').read_bytes())
         assert plist['CFBundleVersion'] == BUILD_NUMBER and plist['BandprismVersion'] == __version__
     else:

@@ -15,7 +15,8 @@ sys.path.insert(0, str(PROJECT))
 
 def environment(cache):
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith(('PYTHON', 'DYLD_', 'SONG_AUDIT_', 'MUSIC_LIBRARY_', 'BANDPRISM_UI_'))}
+           if not k.startswith(('PYTHON', 'DYLD_', 'SONG_AUDIT_', 'MUSIC_LIBRARY_',
+                                'BANDPRISM_UI_', 'BANDPRISM_DESKTOP_CHECK_'))}
     env['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin'
     env['MUSIC_LIBRARY_WORK_DIR'] = str(cache)
     return env
@@ -25,31 +26,88 @@ def executable(bundle):
     return bundle.resolve() / 'Contents/MacOS/Bandprism'
 
 
+def window_inventory(windows):
+    """Record useful screen state without window titles, paths or tokens."""
+    result = []
+    for window in windows:
+        owner = str(window.get('kCGWindowOwnerName', ''))
+        result.append({
+            'owner': owner if re.fullmatch(r'[\w .()+-]{1,80}', owner) else '[redacted]',
+            'pid': window.get('kCGWindowOwnerPID'),
+            'layer': window.get('kCGWindowLayer'),
+            'bounds': dict(window.get('kCGWindowBounds', {})),
+            'on_screen': bool(window.get('kCGWindowIsOnscreen')),
+        })
+    return result
+
+
 def launch(bundle, output):
-    from AppKit import NSRunningApplication
     import Quartz
-    report = {'passed': False, 'normal_bundle_without_ui_driver': True, 'gatekeeper_tested': False}
+    report = {'passed': False, 'normal_bundle_without_ui_driver': True,
+              'gatekeeper_tested': False, 'permissions_modified': False,
+              'native_input_automated': False}
+    manifest = json.loads((bundle / 'Contents/Frameworks/build-manifest.json').read_text())
+    assert not manifest['ui_test_driver'], 'Normal launch must use the shipping app.'
+    prelaunch = Quartz.CGWindowListCopyWindowInfo(
+        Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID)
+    report['prelaunch_windows'] = window_inventory(prelaunch)
+    report['preexisting_python_owner_windows'] = sum(
+        'python' in row['owner'].lower() for row in report['prelaunch_windows'])
+    before_image = output.parent / 'before-normal-app-launch.png'
+    try:
+        before_image.unlink(missing_ok=True)
+        subprocess.run(['/usr/sbin/screencapture', '-x', str(before_image)],
+                       check=True, capture_output=True, timeout=15)
+        assert before_image.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
+        report['prelaunch_screenshot_captured'] = True
+    except Exception as exc:
+        report['prelaunch_screenshot_captured'] = False
+        report['error_type'] = type(exc).__name__
+        output.write_text(json.dumps(report, indent=2) + '\n')
+        raise
     env = environment(output.parent / 'normal-launch-cache')
+    ready_image = output.parent / 'normal-app-launch.png'
+    ready_image.unlink(missing_ok=True)
+    env['BANDPRISM_DESKTOP_CHECK_SCREENSHOT'] = str(ready_image)
     with (output.parent / 'normal-launch.log').open('wb') as log:
-        proc = subprocess.Popen([str(executable(bundle))], env=env, cwd=output.parent, stdout=log, stderr=log)
+        proc = subprocess.Popen([str(executable(bundle)), '--desktop-self-test'],
+                                env=env, cwd=output.parent, stdout=log, stderr=log)
         try:
-            deadline = time.monotonic() + 60
-            while time.monotonic() < deadline and proc.poll() is None:
-                windows = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID)
-                owned = [w for w in windows if w.get('kCGWindowOwnerPID') == proc.pid and w.get('kCGWindowLayer') == 0]
-                if owned:
-                    report['native_window_bounds'] = dict(owned[0]['kCGWindowBounds'])
-                    report['native_window_visible'] = True
+            returncode = proc.wait(timeout=120)
+            report['returncode'] = returncode
+            log.flush()
+            diagnostic = None
+            for line in reversed((output.parent / 'normal-launch.log').read_text(errors='replace').splitlines()):
+                try:
+                    value = json.loads(line)
+                except ValueError:
+                    continue
+                if isinstance(value, dict) and 'native_window_loaded' in value:
+                    diagnostic = value
                     break
-                time.sleep(.2)
-            assert report.get('native_window_visible'), 'Normal packaged app did not display a Cocoa window'
-            subprocess.run(['/usr/sbin/screencapture', '-x', str(output.parent / 'normal-app-launch.png')], check=True)
-            application = NSRunningApplication.runningApplicationWithProcessIdentifier_(proc.pid)
-            assert application is not None and application.terminate(), 'Native application quit request failed'
-            assert proc.wait(timeout=20) == 0, 'App did not exit cleanly after native quit'
+            assert diagnostic is not None, 'Normal packaged app did not complete its loaded diagnostic.'
+            report['desktop_check'] = diagnostic
+            assert returncode == 0 and diagnostic['passed'], 'Normal packaged desktop check failed.'
+            assert diagnostic['native_window_loaded'] and diagnostic['bridge_ready']
+            assert diagnostic['native_window_visible'] and diagnostic['readiness_screenshot_captured']
+            assert diagnostic['server_stopped'], 'Normal desktop left its local server alive.'
+            with socket.socket() as probe:
+                assert probe.connect_ex(('127.0.0.1', diagnostic['listener_port'])) != 0, 'Normal app server is still listening.'
+            children = subprocess.check_output(['/bin/ps', '-axo', 'pid=,command='], text=True)
+            assert str(executable(bundle)) + ' --scanner-worker' not in children, 'Normal app left a decoder worker alive.'
+            report['native_window_visible'] = True
+            report['native_window_bounds'] = diagnostic['native_window_bounds']
             report['native_quit_clean'] = True
+            report['quit_method'] = 'shipping desktop on_loaded diagnostic; normal native window close'
+            report['close_reaped_worker_and_server'] = True
             report['passed'] = True
+        except Exception as exc:
+            report['error_type'] = type(exc).__name__
+            raise
         finally:
+            remaining = Quartz.CGWindowListCopyWindowInfo(
+                Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID)
+            report['postlaunch_windows'] = window_inventory(remaining)
             if proc.poll() is None:
                 proc.terminate()
                 try:

@@ -1,6 +1,6 @@
 # Bandprism for Mac
 
-**Public beta: 0.1.0-beta.1, published October 15, 2026.**
+**Public beta: 0.1.0-beta.2.**
 
 **[Download for Apple silicon Mac](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.2/Bandprism-0.1.0-beta.2-macos-arm64.zip)** · [Release notes, matching sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.2)
 

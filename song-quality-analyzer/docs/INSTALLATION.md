@@ -32,7 +32,7 @@ A matching checksum verifies the published bytes, not the absence of malware.
 
 ## Developer setup
 
-Python 3.13.16 is the beta.1 baseline. Actual embedded OpenSSL 3.5.9 and
+Python 3.13.16 is the beta.2 baseline. Actual embedded OpenSSL 3.5.9 and
 Expat 2.8.5 are verified against the package manifest. Use the matching patched
 runtime for release reproduction; older Python 3.12 results are historical. From the project folder:
 
@@ -75,12 +75,12 @@ For the local browser fallback, install requirements.txt and run:
 
 Open the session link printed by the launcher. It binds to 127.0.0.1; keep that session link private. Stop the terminal process to close the development server. Native app shutdown closes its own local server.
 
-To build the Windows alpha:
+To build the Windows beta:
 
     python -m pip install -r requirements-build.txt
     python tools/build_desktop.py --decoder PATH_TO_LIBMPG123_DLL
 
-On Windows, the output is the complete `dist/Bandprism` folder. The same
+On Windows, the output is the complete `dist/Bandprism.exe` executable. The same
 builder has a native Mac path; use the [ARM64 recipe](platforms/macos/TESTING.md)
 for its `.app`, architecture checks and archive/extract validation. Build each
 platform on its native OS; there is no qualified cross-compilation path.

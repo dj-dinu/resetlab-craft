@@ -84,6 +84,9 @@ def main():
     print(json.dumps({'packages': len(report['packages']), 'missing': report['missing_dependencies'],
         'queried': args.query_advisories,
         'known_python_advisories': sum(len(row['advisory_ids']) for row in report.get('python_package_advisories', [])),
+        'affected_python_packages': [{'name': row['name'], 'version': row['version'],
+            'advisory_count': len(row['advisory_ids'])}
+            for row in report.get('python_package_advisories', []) if row['advisory_ids']],
         'native_review_complete': False, 'redistribution_complete': False}, indent=2))
 
 

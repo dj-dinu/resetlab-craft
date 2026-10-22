@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-from http.server import ThreadingHTTPServer
 import json
 import os
 import sys
@@ -14,12 +13,13 @@ from urllib.parse import urlsplit
 from . import __version__, APP_NAME, SUITE_NAME
 from .server import State, make_handler, sanitize_report
 from .inventory import music_source
+from .loopback_server import LoopbackHTTPServer
 
 
 class LocalSession:
     def __init__(self, scanner=None, decoder=None):
         self.state = State(scanner, decoder)
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(self.state))
+        self.server = LoopbackHTTPServer(("127.0.0.1", 0), make_handler(self.state))
         self.origin = f"http://127.0.0.1:{self.server.server_port}"
         self.url = self.origin + "/#token=" + self.state.token
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)

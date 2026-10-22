@@ -1,5 +1,15 @@
 # Dependency review
 
+## Bandprism beta.2 candidate — October 21, 2026
+
+The candidate pins Pillow 13.0.0 for icon creation. The release gate found 28
+applicable advisories for the earlier 12.3.0 build dependency; their affected
+ranges end at 13.0.0. The exact-version OSV query for 13.0.0 returned no matches.
+See an [upstream advisory record](https://osv.dev/vulnerability/GHSA-22hg-r758-rrw9).
+The gate still blocks unresolved package advisories, including build tools;
+each native candidate generates its own inventory before packaging. This is a
+bounded advisory check, not a guarantee against undisclosed vulnerabilities.
+
 ## Current public beta — October 15, 2026
 
 [Beta.1](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1)
