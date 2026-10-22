@@ -55,6 +55,7 @@ def main():
                 else:
                     raise RuntimeError('The local interface did not become ready.')
                 assert APP_NAME in window.evaluate_js('document.title')
+                assert not window.evaluate_js('/spectracraft/i.test(document.body.innerText)')
                 assert bridge._local_page() and bridge.drop_status()['available']
                 assert window.evaluate_js('typeof window.pywebview.api.choose_folder') == 'function'
                 assert window.evaluate_js('typeof window.pywebview.api.choose_file') == 'function'

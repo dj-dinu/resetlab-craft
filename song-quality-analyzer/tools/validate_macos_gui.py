@@ -15,7 +15,7 @@ sys.path.insert(0, str(PROJECT))
 
 def environment(cache):
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith(('PYTHON', 'DYLD_', 'SONG_AUDIT_', 'MUSIC_LIBRARY_', 'SPECTRACRAFT_UI_'))}
+           if not k.startswith(('PYTHON', 'DYLD_', 'SONG_AUDIT_', 'MUSIC_LIBRARY_', 'BANDPRISM_UI_'))}
     env['PATH'] = '/usr/bin:/bin:/usr/sbin:/sbin'
     env['MUSIC_LIBRARY_WORK_DIR'] = str(cache)
     return env
@@ -79,8 +79,8 @@ def main():
     report_path = output / 'mac-ui.json'
     report_path.unlink(missing_ok=True)
     env = environment(output / 'ui-cache')
-    env['SPECTRACRAFT_UI_FIXTURES'] = str(fixtures)
-    env['SPECTRACRAFT_UI_REPORT'] = str(report_path)
+    env['BANDPRISM_UI_FIXTURES'] = str(fixtures)
+    env['BANDPRISM_UI_REPORT'] = str(report_path)
     with (output / 'instrumented-ui.log').open('wb') as log:
         proc = subprocess.Popen([str(executable(args.ui_test_bundle))], env=env, cwd=output, stdout=log, stderr=log)
         try:

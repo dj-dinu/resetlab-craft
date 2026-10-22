@@ -30,8 +30,8 @@ still apply.
 [Repository map](song-quality-analyzer/docs/REPOSITORY_LAYOUT.md)
 
 HQ/MQ/LQ describe spectral coverage, not listening quality or authenticity.
-HQ: at least 40% of the full duration at/above 20 kHz. Otherwise MQ: at least 40%
-at/above 15 kHz. Otherwise LQ. Bitrate is informational. Older reports keep their
+HQ: at least40% of the full duration at/above20kHz. Otherwise MQ: at least40%
+at/above15kHz. Otherwise LQ. Bitrate is informational. Older reports keep their
 original measurement rules; reanalyze to apply this release's rule.
 
 | Tool | Purpose | Status |
