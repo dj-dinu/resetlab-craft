@@ -182,7 +182,7 @@
   function coverageMetrics(record) {
     const grid = element("div", "evidence-metrics");
     const duration = Number(record.duration_seconds);
-    [["20 kHz+ coverage", "coverage_20khz"], ["18 kHz+ coverage", "coverage_18khz"]].forEach(([label, key]) => {
+    [["20 kHz+ coverage", "coverage_20khz"], ["15 kHz+ coverage", "coverage_15khz"]].forEach(([label, key]) => {
       const value = coverageValue(record, key);
       const card = element("div", "evidence-metric");
       card.append(element("label", "", label), element("strong", "", formatCoverage(value)));
@@ -371,7 +371,7 @@
   function renderTracks() {
     const fragment = document.createDocumentFragment();
     let visible = 0;
-    const view = window.SpectracraftLibraryView.orderedTracks(state.tracks, state.sort);
+    const view = window.BandprismLibraryView.orderedTracks(state.tracks, state.sort);
     view.forEach(({ track, index }) => {
       const fullRecord = state.records.get(string(track.id));
       const record = fullRecord || state.summaries.get(string(track.id));
@@ -411,8 +411,8 @@
       gradeCell.append(element("div", "grade-origin", record ? record.error ? "Analysis failed" : "Measured result" : track.quality ? "Existing label" : "Not analyzed"));
       const coverageCell = element("td");
       if (record && !record.error) {
-        coverageCell.append(coverageRow("20 kHz+", coverageValue(record, "coverage_20khz"), true), coverageRow("18 kHz+", coverageValue(record, "coverage_18khz"), false));
-        const nearBoundary = ["coverage_20khz", "coverage_18khz"].map((key) => coverageValue(record, key)).some((value) => value !== null && value >= 39.9 && value < 40);
+        coverageCell.append(coverageRow("20 kHz+", coverageValue(record, "coverage_20khz"), true), coverageRow("15 kHz+", coverageValue(record, "coverage_15khz"), false));
+        const nearBoundary = ["coverage_20khz", "coverage_15khz"].map((key) => coverageValue(record, key)).some((value) => value !== null && value >= 39.9 && value < 40);
         if (nearBoundary) coverageCell.append(element("div", "boundary-note", "Just below the 40% boundary. The measured grade is unchanged."));
       } else {
         coverageCell.append(element("div", "coverage-empty", record && record.error ? "Measurement unavailable" : "Run a full-track analysis"));
@@ -504,7 +504,7 @@
       const scanValid = track.enabled !== false;
       return { ...track, scan_valid: scanValid, enabled: scanValid };
     });
-    state.alphabetical = window.SpectracraftLibraryView.analysisOrder(state.tracks);
+    state.alphabetical = window.BandprismLibraryView.analysisOrder(state.tracks);
     state.batchSeen = 0;
     state.sort = "title-asc";
     $("track-sort").value = "title-asc";
@@ -571,7 +571,7 @@
       if (id !== undefined) {
         state.records.set(id, record);
         const compact = {};
-        ["id", "source_path", "quality", "status", "coverage_20khz", "coverage_18khz", "duration_seconds", "sample_rate", "sample_rate_hz", "channels", "codec", "container", "bit_depth", "encoded_bitrate", "integrity_check", "declared_duration_seconds", "decoded_duration_seconds"].forEach((field) => {
+        ["id", "source_path", "quality", "status", "coverage_20khz", "coverage_15khz", "duration_seconds", "sample_rate", "sample_rate_hz", "channels", "codec", "container", "bit_depth", "encoded_bitrate", "integrity_check", "declared_duration_seconds", "decoded_duration_seconds"].forEach((field) => {
           if (record[field] !== undefined) compact[field] = record[field];
         });
         if (record.error) compact.error = string(record.error).slice(0, 700);

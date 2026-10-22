@@ -1,4 +1,4 @@
-# Spectracraft
+# Bandprism
 
 **A ResetLab Craft tool for music quality and integrity checks.**
 
@@ -6,21 +6,20 @@ Read a music folder or one audio file, measure complete tracks, inspect the spec
 
 ## Current status
 
-**Public beta: 0.1.0-beta.1, published October 15, 2026.**
-[Windows x64 ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-windows-x64.zip) ·
-[Apple silicon Mac ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-macos-arm64.zip) ·
-[Release notes, sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
-Both packages are unsigned early betas. Mac requires Apple silicon/macOS 15+,
-is ad-hoc signed and is not notarized; see its first-launch instructions.
-Native checks passed and M4 volunteer feedback was positive; manual qualification
-limits remain documented. Linux is deferred.
+**Bandprism 0.1.0-beta.2**, formerly Spectracraft.
+[Windows x64 EXE](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.2/Bandprism-0.1.0-beta.2-windows-x64.exe) · [Apple silicon Mac ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.2/Bandprism-0.1.0-beta.2-macos-arm64.zip) ·
+[Release notes, exact matching sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.2).
 
-| Platform | Actual evidence |
-| --- | --- |
-| Windows x64 | Beta target. User testing reported good; source, browser and packaged worker checks pass. Clean-machine installation, native gestures/display scaling/shutdown and runtime traffic capture are not fully qualified. |
-| macOS Apple silicon | Public unsigned beta. Native macOS 15 source, normal extracted package and 19 Cocoa UI checks pass; positive M4 feedback. Patched runtime and numeric build identity verified. [Download and first launch](docs/platforms/macos/README.md). Signing/notarization and remaining manual qualification are future work. |
-| macOS Intel | Native macOS 15 source suite and six-format checks passed; no Intel app package qualified. |
-| Linux | Deferred and untested. Consider after Windows and Mac qualification. |
+Windows now ships as one executable to prevent beta.1's Internet-marked managed
+DLL startup failure. No manual ZIP-unblocking step is needed for that issue.
+The unsigned build can still show Windows publisher/reputation warnings.
+Mac retains the normal app bundle and its per-app first-launch warning.
+Apple silicon/macOS 15+ is required. Intel packages and Linux remain deferred.
+
+The old Spectracraft beta.1 remains a historical release. Earlier M4 volunteer
+feedback and CI results apply to that earlier build; beta.2 has its own recorded
+native qualification. A beta does not establish compatibility with every machine,
+file picker, drag gesture, device policy or display configuration.
 
 ## Start here
 
@@ -44,10 +43,10 @@ for locally saved 90–150% text sizing. Click the percentage to reset.
 Supported candidates: MP3, WAV, AIFF, FLAC, AAC and ALAC; actual codecs/containers are checked.
 
 - HQ: measurable signal at or above 20 kHz for at least 40% of the complete decoded duration.
-- MQ: otherwise, at least 40% at or above 18 kHz.
+- MQ: otherwise, at least 40% at or above 15 kHz.
 - LQ: otherwise.
 
-Alpha.3 uses the updated 40% rule and measures FFT bins at or above each target.
+Beta.2 retains HQ at20kHz and applies the current MQ threshold of15kHz, both at40%.
 Earlier reports retain their original results; reanalyze to apply the new rule.
 See [Quality rules](docs/QUALITY_RULES.md) for the measurement details.
 
@@ -71,6 +70,6 @@ Future ResetLab Craft tools: Keycraft, Stemcraft, Setcraft and Cratecraft. They 
 
 ## License and reuse
 
-Project-owned Spectracraft source is licensed under **GNU GPL version 3 only** (`GPL-3.0-only`). Others may use, modify and redistribute it, including commercially, provided they follow the [license](LICENSE): preserve required notices, provide corresponding source for distributed covered versions, keep those versions under GPLv3 and identify modifications. Private modifications do not require public release.
+Project-owned Bandprism source is licensed under **GNU GPL version 3 only** (`GPL-3.0-only`). Others may use, modify and redistribute it, including commercially, provided they follow the [license](LICENSE): preserve required notices, provide corresponding source for distributed covered versions, keep those versions under GPLv3 and identify modifications. Private modifications do not require public release.
 
 The [reuse and branding policy](docs/REUSE_AND_BRANDING.md) distinguishes permitted code reuse from misleading claims of an official ResetLab Craft release. Third-party dependencies retain their own licenses; public binary distribution remains gated by their review. This license does not establish trademark registration or relicense users' music/reports.

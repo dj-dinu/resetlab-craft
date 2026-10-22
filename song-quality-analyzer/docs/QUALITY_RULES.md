@@ -2,7 +2,7 @@
 
 The user authorized this rule change: **HQ requires qualifying signal at or
 above 20 kHz for at least 40% of the complete decoded duration.** If HQ fails,
-MQ requires qualifying signal at or above 18 kHz for at least 40%. Otherwise LQ.
+MQ requires qualifying signal at or above 15 kHz for at least 40%. Otherwise LQ.
 Encoded bitrate and the filename's existing label remain informational.
 
 The sole maintained scanner implements the rule. A half-second window qualifies

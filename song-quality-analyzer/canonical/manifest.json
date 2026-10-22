@@ -1,6 +1,6 @@
 {
   "file": "scan_quality.py",
-  "sha256": "b1a7509f684641c6d23b381bea4853f4c87e94135227917a67bad9d9e5ccf0c8",
+  "sha256": "51fd1ea5c4da7af291b7cd1c00440fc3f2a57859dac4ed5c3896c40ba0a67da3",
   "maintenance": "Generated exact source asset; do not edit independently.",
   "grading_mode": "--full-spectrum",
   "license": "GPL-3.0-only"

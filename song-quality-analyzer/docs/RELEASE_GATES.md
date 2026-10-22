@@ -1,7 +1,7 @@
 # Analyzer release status
 
 October 14, 2026: the user reported positive beta testing and authorized a
-**Windows-only public beta**. Spectracraft 0.1.0-alpha.5 remains an early beta,
+**Windows-only public beta**. Bandprism 0.1.0-alpha.5 remains an early beta,
 with its actual validation scope stated in [Windows beta notes](WINDOWS_BETA.md).
 The repository is public and the [Windows prerelease](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-alpha.5)
 is published with source, dependency materials and checksums. All uploaded asset
@@ -11,7 +11,7 @@ digests match the locally verified files.
 
 - The sole canonical full-spectrum scanner supports validated MP3, WAV, AIFF,
   FLAC, AAC and ALAC variants. HQ requires >=40% at or above 20 kHz;
-  otherwise MQ requires >=40% at or above 18 kHz. Bitrate is informational.
+  otherwise MQ requires >=40% at or above 15 kHz. Bitrate is informational.
 - 83 app tests passed, with one POSIX-only skip on Windows; 58 format/edge
   fixtures and 16 integrity fixtures passed. Real-track metrics and hashes
   remained unchanged. Packaged worker/source comparisons passed.

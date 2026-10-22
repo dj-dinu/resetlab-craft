@@ -1,69 +1,38 @@
 # Installation
 
-Choose the [Windows public beta](platforms/windows/README.md) or the
-[Apple silicon Mac public beta](platforms/macos/README.md). Beta.1 is public
-for both. Mac requires Apple silicon/macOS 15+, is ad-hoc signed and is not
-notarized. Linux is deferred. Run as a normal user; analysis does not need administrator access.
+Bandprism beta.2 is the renamed analyzer (formerly Spectracraft).
+Run as a normal user. No Python installation, app account or subscription is
+needed for the packaged app. Linux and Intel Mac packages are not released.
 
-## Windows beta download
+## Windows x64
 
-1. [Download the complete Windows ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.1/Spectracraft-0.1.0-beta.1-windows-x64.zip).
-2. If you trust the release, open the original ZIP's **Properties → General** and
-   choose **Unblock → Apply** if shown. Extract into a new writable folder with a short path. Keep `Spectracraft.exe`
-   beside `_internal`; do not copy only the executable.
-3. Open `Spectracraft.exe`. Use **Add music** for a folder or audio file, wait
-   for metadata to load, then analyze. No developer Python installation is needed.
+1. [Download Bandprism.exe](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.2/Bandprism-0.1.0-beta.2-windows-x64.exe) from the [versioned release](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.2).
+2. Open the EXE. Everything is included; there is no separate `_internal` folder
+   to extract or unblock. Microsoft Edge WebView2 Runtime is required.
+3. Use **Add music** for a folder or audio file, then analyze selected tracks.
 
-The build is unsigned and uses Microsoft Edge WebView2 Runtime. Follow your
-device's security policy and report launch blocks. Review the
-[beta notes](platforms/windows/README.md) and [release checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1).
+The build is unsigned, so Windows may still display publisher/reputation warnings.
+Follow your device policy; this packaging change does not disable security
+protections or remove the download marker. On managed devices, administrator
+policy may prevent unsigned software from running.
 
-For `Failed to resolve Python.Runtime.Loader.Initialize`, see the
-[Windows startup fix](platforms/windows/README.md#startup-error-pythonruntimeloaderinitialize).
-Unblocking the ZIP before a fresh extraction prevents its download marker from
-continuing onto the .NET bridge DLL; it does not remove app-wide unsigned warnings.
+If you downloaded an older **Spectracraft beta.1 ZIP**, its
+[legacy startup workaround](platforms/windows/README.md#older-spectracraft-beta1)
+still applies. Download beta.2 for the packaging fix instead.
 
-## Mac beta download
+## Apple silicon Mac
 
-Use the [Mac overview](platforms/macos/README.md) for the permanent app download,
-macOS/architecture scope, signing status and extraction steps. Python and
-Homebrew are not needed to run the packaged app. Follow the
-[volunteer checklist](platforms/macos/VOLUNTEER_TEST.md). A successful source
-test or launch does not qualify Gatekeeper or every native interaction.
+1. [Download the Mac ZIP](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.2/Bandprism-0.1.0-beta.2-macos-arm64.zip); extract it with Finder.
+2. Open `Bandprism.app` on an M1 or newer Mac with macOS 15+.
+3. The build is ad-hoc signed and not notarized. If Apple cannot verify it, follow
+   the [per-app first-launch guide](platforms/macos/README.md). Keep Gatekeeper enabled.
 
-Extract the ZIP with Finder and open Spectracraft.app. If Apple blocks the
-unsigned app and you trust it, use the per-app Open Anyway steps in the Mac
-guide; keep Gatekeeper enabled. Beta.1 includes the refreshed runtime. Remaining
-manual/native qualification limits are disclosed in the release notes.
-
-## Current local Windows build
-
-Use the published beta.1 ZIP for the current app. Local alpha.5 at
-`dist/alpha5/Spectracraft` is retained for comparison. Close the
-previous app before opening the new executable, and keep its complete
-`_internal` folder beside it. Use the complete versioned alpha.5 folder.
-
-1. Open the complete folder `dist/alpha5/Spectracraft` in the project workspace.
-2. Keep Spectracraft.exe beside its _internal folder; do not copy only the executable.
-3. Open Spectracraft.exe, use Add music to choose a folder or audio file, wait for metadata to load automatically, then analyze.
-
-Alpha.3 applies the [updated 40% quality rule](QUALITY_RULES.md). Reanalyze to
-replace an earlier measurement; existing saved reports and song tags stay as they were.
-
-Alpha.5 adds automatic alphabetical batches, Pause/Resume and Stop while
-retaining the 420 × 360 logical-pixel window minimum. On Windows,
-try Win + Left or Win + Right for half-screen placement. The layout adapts
-to narrow widths; move horizontally inside the results panel to reach all
-columns. Actual native snapping and display-scale combinations still need
-manual testing.
-
-The bundle includes Python, the reviewed scanner and audio decoders. Windows needs the Microsoft Edge WebView2 Runtime used by the native window. Get missing prerequisites from the [official Microsoft source](https://developer.microsoft.com/en-us/microsoft-edge/webview2/). The current build is unsigned and native operation still needs manual qualification; a security block or launch failure belongs in the test record.
-
-If the window cannot launch, the developer browser fallback below can help diagnose the app. It does not qualify the native installer.
+Review the release's SHA256SUMS file to check the exact download bytes.
+A matching checksum verifies the published bytes, not the absence of malware.
 
 ## Developer setup
 
-Python 3.13.16 is the beta.1 baseline. Actual embedded OpenSSL 3.5.9 and
+Python 3.13.16 is the beta.2 baseline. Actual embedded OpenSSL 3.5.9 and
 Expat 2.8.5 are verified against the package manifest. Use the matching patched
 runtime for release reproduction; older Python 3.12 results are historical. From the project folder:
 
@@ -106,12 +75,12 @@ For the local browser fallback, install requirements.txt and run:
 
 Open the session link printed by the launcher. It binds to 127.0.0.1; keep that session link private. Stop the terminal process to close the development server. Native app shutdown closes its own local server.
 
-To build the Windows alpha:
+To build the Windows beta:
 
     python -m pip install -r requirements-build.txt
     python tools/build_desktop.py --decoder PATH_TO_LIBMPG123_DLL
 
-On Windows, the output is the complete `dist/Spectracraft` folder. The same
+On Windows, the output is the complete `dist/Bandprism.exe` executable. The same
 builder has a native Mac path; use the [ARM64 recipe](platforms/macos/TESTING.md)
 for its `.app`, architecture checks and archive/extract validation. Build each
 platform on its native OS; there is no qualified cross-compilation path.

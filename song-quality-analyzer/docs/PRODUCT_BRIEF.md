@@ -1,4 +1,4 @@
-# Spectracraft: users, benefits and release scope
+# Bandprism: users, benefits and release scope
 
 Updated October 11, 2026. This brief distinguishes the current local alpha from proposed additions. The alpha is a read-only Windows multi-format analyzer using the one canonical engine for MP3, WAV, AIFF, FLAC, AAC and ALAC. A native desktop shell and browser fallback are implemented; a private Windows bundle is being tested. Clean-machine Windows, native macOS and public-package qualification remain pending.
 
@@ -8,7 +8,7 @@ Help people find audio files worth a closer check, understand the measured evide
 
 The central question is: **“Does this file contain the frequency coverage I expected, and where should I investigate?”** It can guide listening and follow-up. It cannot establish that a master sounds good, that a source is authentic, or that a player will accept the file.
 
-The user's canonical method remains the one grading engine: HQ requires measurable signal at or above 20 kHz for at least 40% of the complete decoded duration; MQ otherwise requires at least 40% at or above 18 kHz; LQ is the fallback. Encoded bitrate and file format are informational. Keep the existing absolute/relative signal thresholds and channel-power policy. No second scanner or format-specific grading shortcut is authorized by this brief.
+The user's canonical method remains the one grading engine: HQ requires measurable signal at or above 20 kHz for at least 40% of the complete decoded duration; MQ otherwise requires at least 40% at or above 15 kHz; LQ is the fallback. Encoded bitrate and file format are informational. Keep the existing absolute/relative signal thresholds and channel-power policy. No second scanner or format-specific grading shortcut is authorized by this brief.
 
 Call the displayed result **spectral coverage grade**. Put the measured percentages and evidence beside HQ/MQ/LQ. Successfully decoded narrow-band audio and failed analysis must remain distinct: the former may receive LQ under the rule; the latter receives no grade.
 
@@ -57,7 +57,7 @@ The main path remains **select → analyze → inspect → export**.
 
 1. Select a music folder through the native shell's ordinary picker or the browser fallback's path field. Inventory is asynchronous and cancellable, records skipped counts/warnings and declares incomplete limits. The alpha caps analysis at 50 selected tracks; file-level selection is within the inventory rather than a separate native file picker.
 2. Analyze with visible progress, cancellation and retry. Inventory/hash reads and decoding remain local and read-only. Preserve all input bytes and qualify the final packaged shell, including shutdown behavior.
-3. Show a compact results table: file/title, spectral grade, 20/18 kHz coverage and status. Open details for the timeline, spectrogram, qualifying seconds, full duration, codec, sample rate and channels. Show bit depth only when it is meaningful and actually known; a decoder's float output is not proof of a lossy file's original bit depth.
+3. Show a compact results table: file/title, spectral grade, 20/15 kHz coverage and status. Open details for the timeline, spectrogram, qualifying seconds, full duration, codec, sample rate and channels. Show bit depth only when it is meaningful and actually known; a decoder's float output is not proof of a lossy file's original bit depth.
 4. Save the current JSON evidence report using a native save dialog or browser download. It removes recorded machine-specific/cache paths and private diagnostics while retaining relative filenames. Human-readable HTML/CSV export remains proposed; JSON is not described as a polished readable report.
 
 All/HQ/MQ/LQ/Error/Unmeasured filters and cumulative folder scores are implemented. The equally weighted score uses HQ100/MQ50/LQ0, excludes ungraded/unmeasured tracks, and marks partial results. See FOLDER_SUMMARY_AND_INTEGRITY.md for batch and integrity behavior. Context messages should explain a measurement, rather than instruct the user to replace a track automatically. Missing artist/genre tags must not stop audio analysis.

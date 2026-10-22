@@ -37,7 +37,7 @@ def validate(module,project):
     full=folder/'valid-60-second-edit.wav'
     with wave.open(str(full),'wb') as audio:audio.setparams(params);audio.writeframes(pcm*12)
     valid=scan(full,'duration_matches_declaration')
-    assert valid['duration_seconds']==60 and module['spectrum_grade'](valid['coverage_20khz'],valid['coverage_18khz'])=='HQ'
+    assert valid['duration_seconds']==60 and module['spectrum_grade'](valid['coverage_20khz'],valid['coverage_15khz'])=='HQ'
     damaged=bytearray(full.read_bytes());at=damaged.index(b'data');size=int.from_bytes(damaged[at+4:at+8],'little')
     damaged[at+4:at+8]=(size*4).to_bytes(4,'little');damaged[4:8]=(len(damaged)-8+size*3).to_bytes(4,'little')
     short=folder/'declares-4min-decodes-1min.wav';short.write_bytes(damaged)

@@ -17,8 +17,8 @@ if '--scanner-worker' not in sys.argv:
     import webview
     from music_library_lab import desktop
 
-    report_path = Path(os.environ['SPECTRACRAFT_UI_REPORT']).resolve()
-    fixture_root = Path(os.environ['SPECTRACRAFT_UI_FIXTURES']).resolve()
+    report_path = Path(os.environ['BANDPRISM_UI_REPORT']).resolve()
+    fixture_root = Path(os.environ['BANDPRISM_UI_FIXTURES']).resolve()
     results = {'passed': False, 'instrumented_bundle': True, 'renderer': 'Cocoa/WKWebView',
                'native_dialogs_automated': False, 'checks': [], 'screenshots': []}
     session = None

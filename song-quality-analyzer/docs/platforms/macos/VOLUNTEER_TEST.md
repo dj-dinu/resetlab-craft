@@ -6,7 +6,7 @@ Allow about 20 minutes on an M1 or newer Mac with macOS 15 or later. Use an
 ordinary account without installing Python or Homebrew. Start with copies of
 audio you may share; audio, tags and artwork should remain unchanged.
 
-Use only a normal `Spectracraft.app` package from the maintainer. The separate
+Use only a normal `Bandprism.app` package from the maintainer. The separate
 CI app containing the UI driver is not a volunteer or public download. Record
 the ZIP SHA-256, app version, macOS version and Mac chip in your notes.
 The public beta app ZIP contains the app directly; it does not include test

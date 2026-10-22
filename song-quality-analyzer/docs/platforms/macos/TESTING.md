@@ -50,11 +50,11 @@ After the source setup below, from `song-quality-analyzer`:
 .venv/bin/python tools/build_desktop.py --scanner canonical/scan_quality.py \
   --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-arm64
 .venv/bin/python tools/validate_platform_smoke.py \
-  --bundle dist/macos-arm64/Spectracraft.app --report .work/macos-frozen.json
+  --bundle dist/macos-arm64/Bandprism.app --report .work/macos-frozen.json
 .venv/bin/python tools/build_desktop.py --scanner canonical/scan_quality.py \
   --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-ui-test --ui-test-driver
-.venv/bin/python tools/validate_macos_gui.py --bundle dist/macos-arm64/Spectracraft.app \
-  --ui-test-bundle dist/macos-ui-test/Spectracraft.app --output .work/mac-gui-evidence
+.venv/bin/python tools/validate_macos_gui.py --bundle dist/macos-arm64/Bandprism.app \
+  --ui-test-bundle dist/macos-ui-test/Bandprism.app --output .work/mac-gui-evidence
 ```
 
 Build on native ARM64 macOS. Python and Homebrew are build/test requirements;

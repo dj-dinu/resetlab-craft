@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-from http.server import ThreadingHTTPServer
 import json
 import os
 import sys
@@ -14,12 +13,13 @@ from urllib.parse import urlsplit
 from . import __version__, APP_NAME, SUITE_NAME
 from .server import State, make_handler, sanitize_report
 from .inventory import music_source
+from .loopback_server import LoopbackHTTPServer
 
 
 class LocalSession:
     def __init__(self, scanner=None, decoder=None):
         self.state = State(scanner, decoder)
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(self.state))
+        self.server = LoopbackHTTPServer(("127.0.0.1", 0), make_handler(self.state))
         self.origin = f"http://127.0.0.1:{self.server.server_port}"
         self.url = self.origin + "/#token=" + self.state.token
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -119,8 +119,8 @@ class DesktopBridge:
         self._drop_document = document
         try:
             self._window.run_js("""
-                if (!window.__spectracraftDropBound) {
-                    window.__spectracraftDropBound = true;
+                if (!window.__bandprismDropBound) {
+                    window.__bandprismDropBound = true;
                     document.addEventListener('drop', function(event) {
                         event.preventDefault();
                         if (!event.dataTransfer || !event.dataTransfer.files.length) return;
@@ -178,7 +178,7 @@ class DesktopBridge:
             payload = json.dumps(sanitize_report(job["result"]), ensure_ascii=False, indent=2).encode("utf-8")
         selection = self._window.create_file_dialog(
             self._webview.FileDialog.SAVE,
-            save_filename="spectracraft-report.json",
+            save_filename="bandprism-report.json",
             file_types=("JSON report (*.json)",),
         )
         if not selection:
@@ -198,7 +198,7 @@ class DesktopBridge:
         return {"saved": True, "path": str(target)}
 
 
-def main():
+def main(on_loaded=None):
     parser = argparse.ArgumentParser(description=APP_NAME + " desktop alpha")
     parser.add_argument("--scanner")
     parser.add_argument("--decoder")
@@ -221,6 +221,8 @@ def main():
             from .cocoa_bridge import install_cocoa_bridge
             restore_cocoa = install_cocoa_bridge(window)
         window.events.loaded += bridge._bind_drop
+        if on_loaded is not None:
+            window.events.loaded += lambda: on_loaded(window, session, bridge)
         # Windows uses the installed Edge WebView2 runtime; macOS uses WKWebView.
         renderer = "edgechromium" if os.name == "nt" else None
         webview.start(gui=renderer, debug=args.debug, private_mode=True)

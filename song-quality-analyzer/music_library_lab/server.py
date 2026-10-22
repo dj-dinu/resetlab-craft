@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 from collections import OrderedDict
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from importlib.util import find_spec
 import json
 import os
@@ -19,6 +19,7 @@ from . import __version__, APP_NAME, SUITE_NAME, TOOL_NAME
 from .analyzer import analyze_tracks, MAX_TRACKS_PER_RUN
 from .inventory import scan_library, music_source as _source, SUPPORTED_EXTENSIONS, SUPPORTED_FORMATS, MAX_INVENTORY_TRACKS
 from .cache import AnalysisCache
+from .loopback_server import LoopbackHTTPServer
 
 FROZEN = bool(getattr(sys, "frozen", False))
 PROJECT = Path(sys._MEIPASS) if FROZEN else Path(__file__).resolve().parent.parent
@@ -77,8 +78,8 @@ Private job details and the on-disk diagnostic report remain local.
 """
     allowed = {"id", "source_path", "source_sha256", "artist", "title", "status", "quality", "size",
                "duration_seconds", "sample_rate", "channels", "codec", "codec_profile", "container",
-               "bit_depth", "encoded_bitrate", "coverage_20khz", "coverage_18khz", "seconds_20khz",
-               "seconds_18khz", "time_bins", "spectrogram", "analysis_limits", "decoder",
+               "bit_depth", "encoded_bitrate", "coverage_20khz", "coverage_15khz", "seconds_20khz",
+               "seconds_15khz", "time_bins", "spectrogram", "analysis_limits", "decoder",
                "decoded_sample_format", "channel_layout", "attached_picture_streams",
                "native_frequency_ceiling_hz", "analysis_context", "unanalyzable_tail_seconds",
                "silent_seconds", "non_active_seconds", "spectrum_evidence_status", "spectrum_evidence_unavailable_reason",
@@ -230,7 +231,7 @@ class State:
                 if engine_sha is not None and current_sha != engine_sha:
                     raise ValueError("The canonical engine changed between batches. Completed earlier batches are retained; restart with a stable engine.")
                 engine_sha = current_sha
-                compact_keys = {"id", "source_path", "quality", "status", "coverage_20khz", "coverage_18khz",
+                compact_keys = {"id", "source_path", "quality", "status", "coverage_20khz", "coverage_15khz",
                                 "duration_seconds", "sample_rate", "sample_rate_hz", "channels", "codec",
                                 "container", "bit_depth", "encoded_bitrate", "integrity_check",
                                 "declared_duration_seconds", "decoded_duration_seconds", "error"}
@@ -279,7 +280,7 @@ def make_handler(state):
             self.send_header("Cross-Origin-Resource-Policy", "same-origin")
             self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
             if download:
-                self.send_header("Content-Disposition", 'attachment; filename="spectracraft-report.json"')
+                self.send_header("Content-Disposition", 'attachment; filename="bandprism-report.json"')
             self.end_headers()
             self.wfile.write(data)
 
@@ -307,9 +308,9 @@ def make_handler(state):
                                "ui_preferences": interface_preferences(),
                                "default_root": "", "scanner_available": state.scanner.is_file(),
                                "engine_source": "bundled canonical snapshot" if FROZEN else "configured canonical source",
-                               "quality_rule": "HQ: >=40% at or above 20 kHz; MQ: otherwise >=40% at or above 18 kHz; LQ: otherwise. Bitrate is informational.",
+                               "quality_rule": "HQ: >=40% at or above 20 kHz; MQ: otherwise >=40% at or above 15 kHz; LQ: otherwise. Bitrate is informational.",
                                "python_version": sys.version.split()[0], "manager_enabled": False,
-                               "coverage_threshold": 0.4, "quality_rule_version": "2026-10-13-40-percent-at-or-above",
+                               "coverage_threshold": 0.4, "quality_rule_version": "2026-10-16-hq20-mq15-40-percent",
                                "max_tracks_per_run": MAX_TRACKS_PER_RUN,
                                "max_selected_tracks": MAX_INVENTORY_TRACKS, "active_job": state.active_job(),
                                "max_inventory_tracks": MAX_INVENTORY_TRACKS,
@@ -448,7 +449,7 @@ def main():
     parser.add_argument("--decoder")
     args = parser.parse_args()
     state = State(args.scanner, args.decoder)
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(state))
+    server = LoopbackHTTPServer(("127.0.0.1", args.port), make_handler(state))
     url = f"http://127.0.0.1:{server.server_port}/#token={state.token}"
     print("LOCAL_APP " + json.dumps({"url": url, "port": server.server_port, "manager_enabled": False}), flush=True)
     if not args.no_browser:

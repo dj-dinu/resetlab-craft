@@ -1,6 +1,6 @@
 # Folder summaries and incomplete audio
 
-Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 15 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
 
 Implemented locally October 12, 2026. The analyzer remains read-only.
 

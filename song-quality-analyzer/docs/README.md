@@ -1,4 +1,4 @@
-# Spectracraft documentation
+# Bandprism documentation
 
 ## Use the app
 

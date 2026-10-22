@@ -20,7 +20,7 @@ Use **Stop** to end the run. Completed batches stay in the folder summary and th
 
 ## Understand the result
 
-HQ meets the full-track 20 kHz coverage rule; MQ meets the 18 kHz rule; LQ meets neither. Bitrate is information only. The grades do not certify authenticity or subjective sound quality.
+HQ meets the full-track 20 kHz coverage rule; MQ meets the 15 kHz rule; LQ meets neither. Bitrate is information only. The grades do not certify authenticity or subjective sound quality.
 
 Folder score uses HQ = 100, MQ = 50, LQ = 0 across measured tracks. Errors/unmeasured files are excluded and counted, so a partial score must be read with its coverage. Use Show to filter All, HQ, MQ, LQ, Error or Unmeasured. Filters preserve selection and the score.
 

@@ -23,4 +23,4 @@ function analysisBatches(tracks, limit) {
   return batches;
 }
 if (typeof module !== "undefined" && module.exports) module.exports = { orderedTracks, analysisOrder, analysisBatches };
-else window.SpectracraftLibraryView = { orderedTracks, analysisOrder, analysisBatches };
+else window.BandprismLibraryView = { orderedTracks, analysisOrder, analysisBatches };

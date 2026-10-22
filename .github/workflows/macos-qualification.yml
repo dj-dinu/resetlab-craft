@@ -57,30 +57,30 @@ jobs:
         run: |
           python -m pip install -r requirements-build.txt numpy==2.3.5
           python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-arm64
-          codesign --verify --deep --strict dist/macos-arm64/Spectracraft.app
+          codesign --verify --deep --strict dist/macos-arm64/Bandprism.app
           mkdir -p .work/mac-package .work/mac-unpacked
           cp .work/desktop-build/completed-build.json .work/mac-package/build-manifest.json
-          ditto -c -k --sequesterRsrc --keepParent dist/macos-arm64/Spectracraft.app .work/mac-package/Spectracraft-apple-silicon-test.zip
-          ditto -x -k .work/mac-package/Spectracraft-apple-silicon-test.zip .work/mac-unpacked
-          python tools/validate_platform_smoke.py --bundle .work/mac-unpacked/Spectracraft.app --report .work/macos-frozen.json
+          ditto -c -k --sequesterRsrc --keepParent dist/macos-arm64/Bandprism.app .work/mac-package/Bandprism-apple-silicon-test.zip
+          ditto -x -k .work/mac-package/Bandprism-apple-silicon-test.zip .work/mac-unpacked
+          python tools/validate_platform_smoke.py --bundle .work/mac-unpacked/Bandprism.app --report .work/macos-frozen.json
           python tools/audit_release_dependencies.py --query-advisories
       - name: Build isolated UI driver and exercise Cocoa window
         if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
         run: |
           python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$SONG_AUDIT_MPG123_PATH" --dist-dir dist/macos-ui-test --ui-test-driver
-          python tools/validate_macos_gui.py --bundle .work/mac-unpacked/Spectracraft.app --ui-test-bundle dist/macos-ui-test/Spectracraft.app --output .work/mac-gui-evidence
+          python tools/validate_macos_gui.py --bundle .work/mac-unpacked/Bandprism.app --ui-test-bundle dist/macos-ui-test/Bandprism.app --output .work/mac-gui-evidence
       - name: Assemble reviewed public beta candidate and exact sources
         if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
-        run: python tools/prepare_public_beta.py --bundle .work/mac-unpacked/Spectracraft.app --decoder "$SONG_AUDIT_MPG123_PATH"
+        run: python tools/prepare_public_beta.py --bundle .work/mac-unpacked/Bandprism.app --decoder "$SONG_AUDIT_MPG123_PATH"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: matrix.architecture == 'arm64' && (github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-'))
         with:
-          name: Spectracraft-beta1-macos-arm64
+          name: Bandprism-beta2-macos-arm64
           path: |
-            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.zip
-            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.txt
-            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.json
-            song-quality-analyzer/.work/public-beta-1/macos-arm64/*.md
+            song-quality-analyzer/.work/public-beta-2/macos-arm64/*.zip
+            song-quality-analyzer/.work/public-beta-2/macos-arm64/*.txt
+            song-quality-analyzer/.work/public-beta-2/macos-arm64/*.json
+            song-quality-analyzer/.work/public-beta-2/macos-arm64/*.md
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

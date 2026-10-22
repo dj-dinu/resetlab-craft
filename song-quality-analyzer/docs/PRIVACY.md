@@ -1,6 +1,6 @@
 # Privacy and local data
 
-Spectracraft has no analytics, telemetry, accounts, advertising, remote music service, automatic uploader or automatic updater. The app code calls its own loopback API only. Interface scripts, fonts, images and styles are local. Native platform/browser components and dependency installation need their own platform qualification; this is not a promise that every OS service makes zero network requests.
+Bandprism has no analytics, telemetry, accounts, advertising, remote music service, automatic uploader or automatic updater. The app code calls its own loopback API only. Interface scripts, fonts, images and styles are local. Native platform/browser components and dependency installation need their own platform qualification; this is not a promise that every OS service makes zero network requests.
 
 ## What the app reads
 

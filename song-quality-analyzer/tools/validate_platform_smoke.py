@@ -81,13 +81,24 @@ def main():
             assert sys.platform in {'darwin', 'win32'}, 'Use the matching native platform'
             bundle = args.bundle.resolve()
             mac = sys.platform == 'darwin'
-            executable = bundle / ('Contents/MacOS/Spectracraft' if mac else 'Spectracraft.exe')
-            internal = bundle / ('Contents/Frameworks' if mac else '_internal')
+            executable = bundle / 'Contents/MacOS/Bandprism' if mac else bundle
+            if mac:
+                internal = bundle / 'Contents/Frameworks'
+            else:
+                # Read the exact embedded payload, without executing build-time
+                # paths or depending on a developer's installed decoder.
+                from PyInstaller.archive.readers import CArchiveReader
+                archive = CArchiveReader(str(bundle))
+                internal = root / 'verified-embedded-resources'
+                for relative in ('canonical/scan_quality.py', 'decoder/libmpg123-0.dll', 'build-manifest.json'):
+                    target = internal / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(archive.extract(relative.replace('/', '\\')))
             decoder = internal / ('decoder/libmpg123.0.dylib' if mac else 'decoder/libmpg123-0.dll')
             assert digest(internal / 'canonical/scan_quality.py') == manifest['sha256']
             assert not json.loads((internal / 'build-manifest.json').read_text())['ui_test_driver']
             runtime = subprocess.run([str(executable), '--runtime-info'], capture_output=True,
-                                     text=True, timeout=30, cwd=root, check=True)
+                                     text=True, timeout=60, cwd=root, check=True)
             assert json.loads(runtime.stdout) == json.loads((internal / 'build-manifest.json').read_text())['runtime']
             expected = platform.machine()
             if mac:
@@ -114,7 +125,7 @@ def main():
                                         root / 'frozen-analysis', str(decoder))
                 for source, packaged in zip(result['records'], frozen['records'], strict=True):
                     for key in ('source_path', 'status', 'quality', 'duration_seconds', 'coverage_20khz',
-                                'coverage_18khz', 'time_bins', 'spectrogram', 'codec', 'sample_rate'):
+                                'coverage_15khz', 'time_bins', 'spectrogram', 'codec', 'sample_rate'):
                         assert source[key] == packaged[key], (source['source_path'], key)
                 paused = threading.Event()
                 paused.set()
