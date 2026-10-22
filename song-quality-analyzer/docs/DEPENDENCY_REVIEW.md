@@ -56,7 +56,7 @@ zero advisory matches. Only public names/versions were submitted; native
 libraries and the interpreter are outside that result.
 
 **Public Mac gate: refresh the bundled runtime.** Python/OpenSSL/Expat lack
-later upstream security fixes. No Spectracraft exploit was demonstrated, but
+later upstream security fixes. No Bandprism exploit was demonstrated, but
 the current inventory is not security-complete. Use an updated supported
 runtime with patched embedded libraries, then rerun source/frozen/UI and exact
 regression checks and regenerate corresponding sources/checksums. See

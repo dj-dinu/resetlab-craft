@@ -10,7 +10,7 @@ their original test counts.
 
 ## Fixed grading and interpretation rules
 
-HQ requires qualifying measurable signal at or above 20 kHz for at least 40% of the complete decoded duration, including quiet sections. Otherwise MQ requires at least 40% at or above 18 kHz; otherwise LQ. The canonical signal/activity thresholds, half-second bins, duration weighting and mean channel-power policy remain unchanged.
+HQ requires qualifying measurable signal at or above 20 kHz for at least 40% of the complete decoded duration, including quiet sections. Otherwise MQ requires at least 40% at or above 15 kHz; otherwise LQ. The canonical signal/activity thresholds, half-second bins, duration weighting and mean channel-power policy remain unchanged.
 
 Bitrate, codec/container, extension, sample rate, bit depth and lossless compression do not determine the grade. A successfully decoded silent, very short or intentionally band-limited source can receive LQ. A decode/resource failure has no completed grade. Noise can qualify high-frequency coverage without demonstrating good sound.
 

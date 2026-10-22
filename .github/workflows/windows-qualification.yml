@@ -48,22 +48,25 @@ jobs:
         run: |
           python -m pip install -r requirements-build.txt numpy==2.3.5
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$env:SONG_AUDIT_MPG123_PATH" --dist-dir dist/beta1
+          python tools/build_desktop.py --scanner canonical/scan_quality.py --decoder "$env:SONG_AUDIT_MPG123_PATH" --dist-dir dist/beta2
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/validate_platform_smoke.py --bundle dist/beta1/Spectracraft --report .work/windows-frozen.json
+          python tools/validate_platform_smoke.py --bundle dist/beta2/Bandprism.exe --report .work/windows-frozen.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/validate_windows_download.py --executable dist/beta2/Bandprism.exe --report .work/windows-desktop.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/audit_release_dependencies.py --query-advisories
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/prepare_public_beta.py --bundle dist/beta1/Spectracraft --decoder "$env:SONG_AUDIT_MPG123_PATH"
+          python tools/prepare_public_beta.py --bundle dist/beta2/Bandprism.exe --decoder "$env:SONG_AUDIT_MPG123_PATH"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/release-')
         with:
-          name: Spectracraft-beta1-windows-x64
+          name: Bandprism-beta2-windows-x64
           path: |
-            song-quality-analyzer/.work/public-beta-1/windows-x64/*.zip
-            song-quality-analyzer/.work/public-beta-1/windows-x64/*.txt
-            song-quality-analyzer/.work/public-beta-1/windows-x64/*.json
-            song-quality-analyzer/.work/public-beta-1/windows-x64/*.md
+            song-quality-analyzer/.work/public-beta-2/windows-x64/*.zip
+            song-quality-analyzer/.work/public-beta-2/windows-x64/*.exe
+            song-quality-analyzer/.work/public-beta-2/windows-x64/*.txt
+            song-quality-analyzer/.work/public-beta-2/windows-x64/*.json
+            song-quality-analyzer/.work/public-beta-2/windows-x64/*.md
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
@@ -74,6 +77,7 @@ jobs:
           path: |
             song-quality-analyzer/.work/windows-smoke.json
             song-quality-analyzer/.work/windows-frozen.json
+            song-quality-analyzer/.work/windows-desktop.json
             song-quality-analyzer/.work/release-dependency-review.json
             song-quality-analyzer/.work/desktop-build/completed-build.json
           if-no-files-found: warn

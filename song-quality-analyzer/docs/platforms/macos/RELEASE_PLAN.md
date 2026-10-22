@@ -15,7 +15,7 @@ upstream security fixes postdate those libraries. Before public Mac release,
 select a supported patched Python/runtime combination, verify the actual
 embedded OpenSSL/Expat versions and regenerate the dependency inventory and
 matching source materials. A newer executable alone does not establish which
-native libraries it bundles. No Spectracraft exploit was demonstrated.
+native libraries it bundles. No Bandprism exploit was demonstrated.
 
 Keep the same canonical scanner and the full-duration 40% HQ/MQ rules. If
 updating PyAV or another decoder, repeat exact metrics/time-bin/spectrum and
@@ -89,7 +89,7 @@ After the gates and release approval:
 
 - Freeze/tag the reviewed candidate and publish a prerelease, with Apple
   silicon/macOS minimum and signing status visible.
-- Attach `Spectracraft-<version>-macos-arm64.zip`, matching project source,
+- Attach `Bandprism-<version>-macos-arm64.zip`, matching project source,
   exact dependency source/build materials/notices and `SHA256SUMS.txt`.
 - Use a permanent GitHub Releases link for public users. Workflow artifacts
   expire and require GitHub sign-in; do not publish a redirected storage URL.

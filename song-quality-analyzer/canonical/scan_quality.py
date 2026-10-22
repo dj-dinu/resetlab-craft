@@ -404,7 +404,7 @@ def main():
 # Full-duration mode added 2026-10-09 for the user's 30% / 20 kHz quality rule.
 FULL_N=2048;FULL_WIN=np.hanning(FULL_N);FULL_HOP=1024
 FULL_COVERAGE_THRESHOLD=.40
-FULL_RULE_VERSION="2026-10-13-40-percent-at-or-above"
+FULL_RULE_VERSION="2026-10-16-hq20-mq15-40-percent"
 
 def full_spectrum_power(pcm,sr):
     blocks=np.lib.stride_tricks.sliding_window_view(pcm,FULL_N,axis=0)[::FULL_HOP]
@@ -421,7 +421,7 @@ def full_spectrum_metrics(pcm,sr):
         if not len(band) or f>sr/2:return False
         energy=float(band.mean())
         return bool(active and energy>=1e-11 and energy>=ref*10**(-6.5))
-    return reaches(20000),reaches(18000),p
+    return reaches(20000),reaches(15000),p
 
 FULL_EXTS={'.mp3','.wav','.wave','.aif','.aiff','.flac','.aac','.m4a','.mp4'}
 FULL_MAX_DURATION_SECONDS=24*60*60
@@ -513,7 +513,7 @@ class _FullSpectrumAccumulator:
         else:
             a=b=False;self.short_seconds+=seconds
         if not np.any(pcm):self.silent_seconds+=seconds
-        self.series.append(dict(start_seconds=round(self.duration,3),seconds=seconds,reaches_20khz=a,reaches_18khz=b))
+        self.series.append(dict(start_seconds=round(self.duration,3),seconds=seconds,reaches_20khz=a,reaches_15khz=b))
         self.duration+=seconds;self.high+=seconds*a;self.mid+=seconds*b
 
     def finish(self):
@@ -529,7 +529,7 @@ class _FullSpectrumAccumulator:
         status='not_requested' if not self.retain else 'unavailable' if self.evidence_reason else 'available'
         result=dict(quality_rule_version=FULL_RULE_VERSION,coverage_threshold=FULL_COVERAGE_THRESHOLD,
             duration_seconds=self.duration,coverage_20khz=self.high/self.duration,
-            coverage_18khz=self.mid/self.duration,seconds_20khz=self.high,seconds_18khz=self.mid,
+            coverage_15khz=self.mid/self.duration,seconds_20khz=self.high,seconds_15khz=self.mid,
             sample_rate=self.sr,time_bins=self.series,channels=self.channels,
             native_frequency_ceiling_hz=self.sr/2,analysis_context=context,
             unanalyzable_tail_seconds=self.short_seconds,silent_seconds=self.silent_seconds,
@@ -772,7 +772,8 @@ def full_spectrum_self_test():
     def filtered(edge):
         x=random.normal(0,.1,(sr//2,2));f=np.fft.rfft(x,axis=0);f[np.fft.rfftfreq(len(x),1/sr)>edge]=0
         return np.fft.irfft(f,n=len(x),axis=0).astype(np.float32)
-    assert full_spectrum_metrics(filtered(16000),sr)[:2]==(False,False)
+    assert full_spectrum_metrics(filtered(14000),sr)[:2]==(False,False)
+    assert full_spectrum_metrics(filtered(16000),sr)[:2]==(False,True)
     assert full_spectrum_metrics(filtered(18500),sr)[:2]==(False,True)
     assert full_spectrum_metrics(filtered(20500),sr)[:2]==(True,True)
     assert full_spectrum_metrics(filtered(19500),sr)[:2]==(False,True)
@@ -798,20 +799,20 @@ def full_spectrum_self_test():
     control.closed=True
     try:control.wait();raise AssertionError('Closed control must fail')
     except _FullSpectrumControlClosed:pass
-    print('SELF_TEST passed: known 16, 18.5, 20.5 kHz cutoffs, silence, and 40% mixed coverage and strict at-or-above frequency regions',flush=True)
+    print('SELF_TEST passed: known 14, 16, 18.5, 20.5 kHz cutoffs, silence, and 40% mixed coverage and strict at-or-above frequency regions',flush=True)
 
 FULL_SPECTRUM_METHOD = (
     'Full decoded duration, including quiet sections; 0.5-second bins; 2048-point Hann FFT, '
     '1024-sample hop; mean power over channels. A bin qualifies at or above a frequency when '
     'the mean power of available FFT bins from that frequency to Nyquist is >= -110 dBFS '
     'and >= -65 dB relative to the 1-10 kHz band, with summed spectral power >3e-6 to exclude silence. '
-    'HQ: >=40% at or above 20 kHz; MQ: otherwise >=40% at or above 18 kHz; '
+    'HQ: >=40% at or above 20 kHz; MQ: otherwise >=40% at or above 15 kHz; '
     'LQ: otherwise. Encoded bitrate is informational only. '
     'Spectrum grades do not establish original source bitrate.'
 )
 
-def spectrum_grade(coverage_20khz,coverage_18khz):
-    return 'HQ' if coverage_20khz>=FULL_COVERAGE_THRESHOLD else 'MQ' if coverage_18khz>=FULL_COVERAGE_THRESHOLD else 'LQ'
+def spectrum_grade(coverage_20khz,coverage_15khz):
+    return 'HQ' if coverage_20khz>=FULL_COVERAGE_THRESHOLD else 'MQ' if coverage_15khz>=FULL_COVERAGE_THRESHOLD else 'LQ'
 
 def full_spectrum_cli(argv):
     import argparse
@@ -864,7 +865,7 @@ def full_spectrum_cli(argv):
                     batch_limit_exceeded=True
                     raise _FullSpectrumResourceLimit(batch_limit_reason)
                 retained_time_bins+=bins
-                grade=spectrum_grade(result['coverage_20khz'],result['coverage_18khz'])
+                grade=spectrum_grade(result['coverage_20khz'],result['coverage_15khz'])
                 result=dict(base,**result,status='analyzed',quality=grade)
                 if args.spectra_dir and result['spectrum_evidence_status']=='available':
                     name=hashlib.sha256(str(p).encode()).hexdigest()[:16]+'.npz'
@@ -875,7 +876,7 @@ def full_spectrum_cli(argv):
                 result=dict(base,status='integrity_error' if isinstance(exc,_AudioIntegrityError) else 'analysis_limit' if isinstance(exc,_FullSpectrumResourceLimit) else 'decode_error',quality=None,reason=str(exc));failures+=1
                 if isinstance(exc,_AudioIntegrityError):result.update(exc.details)
         records.append(result)
-        print('PROGRESS '+json.dumps({k:result[k] for k in ('path','status','quality','coverage_20khz','coverage_18khz','reason') if k in result}),flush=True)
+        print('PROGRESS '+json.dumps({k:result[k] for k in ('path','status','quality','coverage_20khz','coverage_15khz','reason') if k in result}),flush=True)
     report={'as_of':datetime.now().astimezone().isoformat(),'method':FULL_SPECTRUM_METHOD,'records':records,
         'counts':dict(collections.Counter(r['quality'] or r['status'] for r in records)),
         'elapsed_seconds':round(time.monotonic()-start,2),'retained_time_bins':retained_time_bins,

@@ -107,8 +107,14 @@ def main():
     assert sys.platform in {'win32', 'darwin'}
     name = 'macos-arm64' if mac else 'windows-x64'
     assert platform.machine().lower() in ({'arm64'} if mac else {'amd64', 'x86_64'})
-    internal = args.bundle / ('Contents/Frameworks' if mac else '_internal')
-    manifest = json.loads((internal / 'build-manifest.json').read_text())
+    if mac:
+        internal = args.bundle / 'Contents/Frameworks'
+        manifest = json.loads((internal / 'build-manifest.json').read_text())
+    else:
+        from PyInstaller.archive.readers import CArchiveReader
+        embedded = CArchiveReader(str(args.bundle))
+        manifest = json.loads(embedded.extract('build-manifest.json'))
+        assert manifest['packaging'] == 'onefile'
     inventory = json.loads((PROJECT / '.work/release-dependency-review.json').read_text())
     assert not manifest['ui_test_driver'] and manifest['version'] == __version__
     assert manifest['runtime'] == inventory['runtime']
@@ -124,16 +130,19 @@ def main():
         assert gui['passed'] and len(gui['checks']) >= 19 and gui['close_reaped_worker_and_server']
         assert normal['native_quit_clean'] and frozen['frozen_bundle']['passed']
         plist = plistlib.loads((args.bundle / 'Contents/Info.plist').read_bytes())
-        assert plist['CFBundleVersion'] == BUILD_NUMBER and plist['SpectracraftVersion'] == __version__
+        assert plist['CFBundleVersion'] == BUILD_NUMBER and plist['BandprismVersion'] == __version__
     else:
         frozen = json.loads((PROJECT / '.work/windows-frozen.json').read_text())
         assert frozen['passed']
-    output = PROJECT / '.work/public-beta-1' / name
+        desktop = json.loads((PROJECT / '.work/windows-desktop.json').read_text())
+        assert desktop['passed'] and desktop['internet_marker_retained']
+        assert desktop['executable_sha256'] == sha(args.bundle)
+    output = PROJECT / '.work/public-beta-2' / name
     output.mkdir(parents=True, exist_ok=False)
     materials = output / 'materials'
     materials.mkdir()
     collect_sources(materials, inventory, args.decoder)
-    stem = f'Spectracraft-{__version__}'
+    stem = f'Bandprism-{__version__}'
     archive(materials, output / f'{stem}-{name}-dependency-sources.zip', 'dependency-source-materials')
     source_zip = output / f'{stem}-source.zip'
     subprocess.run(['git', 'archive', '--format=zip', '--output=' + str(source_zip), 'HEAD'], cwd=PROJECT.parent, check=True)
@@ -142,31 +151,34 @@ def main():
     if mac:
         subprocess.run(['/usr/bin/ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(args.bundle), str(app_zip)], check=True)
     else:
-        staging = output / 'app-stage' / 'Spectracraft'
-        shutil.copytree(args.bundle, staging)
+        staging = output / 'app-stage' / 'Bandprism'
+        staging.mkdir(parents=True)
+        shutil.copyfile(args.bundle, staging / 'Bandprism.exe')
+        shutil.copyfile(args.bundle, output / f'{stem}-{name}.exe')
         shutil.copytree(PROJECT / 'docs', staging / 'docs')
         shutil.copyfile(PROJECT / 'LICENSE', staging / 'LICENSE')
         shutil.copyfile(materials / 'DEPENDENCY_INVENTORY.json', staging / 'DEPENDENCY_INVENTORY.json')
         (staging / 'README.txt').write_text(
-            f'Spectracraft {__version__} by ResetLab Craft — Windows public beta\n\n'
-            'Extract this complete folder. Keep _internal beside Spectracraft.exe, then open '
-            'Spectracraft.exe as a normal user. Microsoft Edge WebView2 Runtime is required.\n'
+            f'Bandprism {__version__} by ResetLab Craft — Windows public beta\n\n'
+            'Open Bandprism.exe as a normal user. Everything is included in that executable; '
+            'no _internal folder or ZIP Unblock step is required for the managed-DLL issue. '
+            'Microsoft Edge WebView2 Runtime is required.\n'
             'This beta is unsigned. Follow your device security policy.\n'
             'Use Add music for a file/folder, then Analyze. Aa changes text size. '
             'Music, tags and artwork stay unchanged; analysis is local.\n'
             'See docs/USER_GUIDE.md, docs/PRIVACY.md and the release notes for scope and limits.\n'
-            'Project source is GPL-3.0-only. Third-party terms remain in _internal/third-party-notices '
-            'and the separate dependency source ZIP. Native DLLs remain replaceable. '
+            'Project source is GPL-3.0-only. Third-party terms and exact sources are in '
+            'the separate dependency source ZIP. Rebuild from matching source to replace native libraries. '
             'Do not describe the entire bundle as BSD or LGPL.\n'
             'Downloads and exact matching sources: https://github.com/dj-dinu/resetlab-craft/releases\n',
             encoding='utf-8')
-        archive(staging, app_zip, 'Spectracraft')
-    assets = [dict(file=p.name, bytes=p.stat().st_size, sha256=sha(p)) for p in sorted(output.glob('*.zip'))]
+        archive(staging, app_zip, 'Bandprism')
+    assets = [dict(file=p.name, bytes=p.stat().st_size, sha256=sha(p)) for p in sorted(output.iterdir()) if p.suffix in {'.zip', '.exe'}]
     (output / f'SHA256SUMS-{name}.txt').write_text(''.join(a['sha256'] + '  ' + a['file'] + '\n' for a in assets))
     (output / f'RELEASE-MANIFEST-{name}.json').write_text(json.dumps(dict(version=__version__,
         build_number=BUILD_NUMBER, platform=name, source_commit=commit, runtime=manifest['runtime'],
         signing=manifest['signing'], assets=assets, published=False), indent=2) + '\n')
-    notes = (PROJECT / 'docs/RELEASE_NOTES_0.1.0_BETA1.md').read_text(encoding='utf-8')
+    notes = (PROJECT / 'docs/RELEASE_NOTES_0.1.0_BETA2.md').read_text(encoding='utf-8')
     (output / 'RELEASE_NOTES.md').write_text(notes, encoding='utf-8')
     print(json.dumps(dict(prepared=True, platform=name, source_commit=commit, assets=assets, published=False)))
 

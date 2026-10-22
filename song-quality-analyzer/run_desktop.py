@@ -42,6 +42,10 @@ def _worker_streams():
 
 
 def main():
+    if sys.argv[1:] == ["--desktop-self-test"]:
+        _worker_streams()
+        from music_library_lab.desktop_check import main as desktop_check
+        return desktop_check()
     if sys.argv[1:] == ["--runtime-info"]:
         _worker_streams()
         import json

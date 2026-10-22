@@ -22,7 +22,7 @@ def environment(cache):
 
 
 def executable(bundle):
-    return bundle.resolve() / 'Contents/MacOS/Spectracraft'
+    return bundle.resolve() / 'Contents/MacOS/Bandprism'
 
 
 def launch(bundle, output):

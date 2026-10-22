@@ -1,12 +1,12 @@
 **Community software ideas for Dinu — October 12, 2026**
 
-My strongest recommendations are Practicecraft, Showflow, and Gig Ready for a new community tool; finishing Spectracraft qualification for the existing product; Vibe Crate Cards for a public resource shaped by your musical taste; and dbt Change Explainer for a separate technical community.
+My strongest recommendations are Practicecraft, Showflow, and Gig Ready for a new community tool; finishing Bandprism qualification for the existing product; Vibe Crate Cards for a public resource shaped by your musical taste; and dbt Change Explainer for a separate technical community.
 
 These are fit and feasibility judgments. No customer interviews, purchase commitments, market-size calculation, or willingness-to-pay study has been conducted. Competitor checks establish overlap; they do not establish that a gap has proven demand. Proposed names are working labels, except the existing ResetLab Craft suite names.
 
 **What this is based on**
 
-Your current project documents establish ResetLab Craft as the selected parent brand and Spectracraft as an implemented local alpha. Keycraft, Stemcraft, Setcraft, and Cratecraft remain concepts, with a staged roadmap. The product brief and launch checklist still identify installation, platform, and public-release qualification work.
+Your current project documents establish ResetLab Craft as the selected parent brand and Bandprism as an implemented local alpha. Keycraft, Stemcraft, Setcraft, and Cratecraft remain concepts, with a staged roadmap. The product brief and launch checklist still identify installation, platform, and public-release qualification work.
 
 Relevant chats establish DJ teaching, beginner lessons, gig planning, house music for coffee/car events, cultural/community events, and Reset Lab Events and Reset Lab Rentals. You also value clear handover, portability, evidence, consistent organization, and preservation of DJ metadata.
 
@@ -52,7 +52,7 @@ First-version effort: Easy with saved templates and one operator; Medium with st
 
 Validation: test across three actual gigs or rentals. Look for fewer forgotten accessories, faster preparation, and clearer return records. If the same benefit is achieved with a simple checklist, keep it as a small module.
 
-**Spectracraft — strongest existing technical foundation.**
+**Bandprism — strongest existing technical foundation.**
 
 This is already a local alpha, so the next worthwhile step is qualification and a small user beta. Its product promise is local full-track spectral inspection with evidence and preserved originals. It must keep the canonical scan_quality.py engine, --full-spectrum mode, and the user's grading rules; encoded bitrate is informational. HQ requires at least 30% of the whole decoded track duration to contain measurable signal around 20 kHz. The grade is spectral coverage, not proof of source authenticity or overall listening quality.
 
@@ -88,7 +88,7 @@ Music preparation and library tools:
 
 | # | Idea | First useful version and audience | Effort | Critical assessment |
 |---|---|---|---|---|
-| 1 | Spectracraft | Local spectral evidence for DJs/producers; qualify the existing alpha. | Medium–Hard | Existing work provides momentum; release and interpretation are the priority. |
+| 1 | Bandprism | Local spectral evidence for DJs/producers; qualify the existing alpha. | Medium–Hard | Existing work provides momentum; release and interpretation are the priority. |
 | 2 | Cratecraft Preview | Review proposed folders, filenames, matching title tags, and uncertainties before any changes. | Medium | Useful planning scope; actual file/library writes require preservation and supported reconciliation. |
 | 3 | Setcraft Lite | Import track metadata; manually shape BPM, energy, mood, and event segments; export a proposed set. | Medium | Keep exact transition prediction outside the lite version; generic auto-planning is crowded. |
 | 4 | Transition Recipe Book | Save exact editions, entry/exit points, tempo changes, and EQ moves as teaching cards. | Easy | Version mismatches matter; likely a Practicecraft or Setcraft module. |
@@ -157,7 +157,7 @@ Secondary-interest experiments; lower confidence about fit:
 | Serve community events | Showflow | One organizer and one actual event are enough to test it. |
 | Improve the existing rental/event business | Gig Ready | You can test the exact preparation and return workflow. |
 | Express musical taste publicly | Vibe Crate Cards | Curation is the value; the initial software can stay small. |
-| Complete the strongest existing asset | Spectracraft | Qualify and validate current work before expanding the suite. |
+| Complete the strongest existing asset | Bandprism | Qualify and validate current work before expanding the suite. |
 | Build a technical portfolio | dbt Change Explainer | Clear inputs, observable outputs, and a specific reviewer task. |
 | Release a simple technical teaching resource | Snapshot Lab or CSV Handshake | Low integration burden with synthetic or locally supplied data. |
 

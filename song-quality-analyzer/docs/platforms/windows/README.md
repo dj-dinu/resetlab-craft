@@ -1,102 +1,45 @@
-# Spectracraft Windows public beta
+# Bandprism for Windows
 
-Published beta: **0.1.0-beta.1**, Windows x64, portable ZIP, October 15, 2026.
-The user approved proceeding with a Windows public beta on October 14, 2026,
-after reporting that beta testing looked good. The repository and
-[prerelease downloads](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.1)
-are public. Source, dependency source/build materials and checksums accompany
-the Windows ZIP.
+**[Download beta.2 — Windows x64 EXE](https://github.com/dj-dinu/resetlab-craft/releases/download/v0.1.0-beta.2/Bandprism-0.1.0-beta.2-windows-x64.exe)** ·
+[Release, matching sources and checksums](https://github.com/dj-dinu/resetlab-craft/releases/tag/v0.1.0-beta.2)
 
 ## Install and start
 
-1. Download the Windows ZIP from
-   [GitHub Releases](https://github.com/dj-dinu/resetlab-craft/releases).
-2. If you trust this release, right-click the original ZIP, choose **Properties → General**,
-   and select **Unblock → Apply** if that option is present. Then extract the complete ZIP
-   into a new writable folder with a short path.
-   Keep `Spectracraft.exe` beside its `_internal` folder.
-3. Open `Spectracraft.exe` as a normal user. The app needs the
-   [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
-4. Use **Add music** to choose a folder or audio file. Metadata loads automatically.
-5. Choose **Analyze selected tracks**. Selected songs run in title A–Z order
-   through automatic batches of 50. Use Pause/Resume or Stop when needed.
-6. Inspect evidence and save the latest completed batch's JSON report.
+1. Download the EXE from the official GitHub release.
+2. Open it as a normal user. No installer, Python, separate `_internal` folder or
+   DLL-unblocking step is needed for the beta.1 loader issue.
+3. Microsoft Edge WebView2 Runtime is required. Choose **Add music**, then analyze.
 
-The beta is unsigned. Windows may display publisher/reputation messages;
-review the source and published checksums, and follow your device's security
-policy. Report a launch block rather than disabling security protections.
-No administrator access, developer Python, app account or subscription is
-needed for normal use of the portable build.
+Bandprism is the new name of Spectracraft, under ResetLab Craft. The Windows
+package now embeds its runtime in one executable. Its normal bootloader unpacks
+private temporary runtime files and cleans them on exit. This avoids propagating
+the ZIP's Internet-zone marker onto .NET DLLs. The downloaded EXE's marker is
+retained. No Defender, SmartScreen, registry or machine-wide trust setting is changed.
 
-### Startup error: Python.Runtime.Loader.Initialize
+The beta remains unsigned. Publisher/reputation warnings and managed-device
+restrictions are separate from the fixed .NET DLL-loading failure. Follow your
+device's security policy. First launch can take a little longer while the runtime
+is unpacked. Do not run the app as administrator.
 
-If beta.1 reports `Failed to resolve Python.Runtime.Loader.Initialize`, Windows may
-have propagated the internet download marker from the ZIP onto `Python.Runtime.dll`.
-The exact failure was reproduced with the published DLL: it loads normally without
-that marker and fails when the disposable test copy has Internet-zone metadata.
+## Older Spectracraft beta.1
 
-Close the error, use the **original ZIP's Properties → General → Unblock → Apply**
-step above, and extract into a **new folder**. Opening the already-extracted folder
-can repeat the failure because its DLLs retain the marker. This is a per-download
-trust decision; no Defender, SmartScreen or machine-wide setting needs changing.
-Follow administrator policy on managed computers. If Unblock is absent or the error
-persists after a fresh extraction, report the complete traceback for investigation.
-Microsoft explains the relevant [.NET assembly loading behavior](https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/loadfromremotesources-element).
+Beta.1's folder ZIP can fail with `Failed to resolve Python.Runtime.Loader.Initialize`
+when Windows propagates its download marker to managed DLLs. That was reproduced
+locally and resolved by explicitly trusting the original ZIP through Properties
+and extracting it into a fresh folder. Beta.2 replaces that packaging route;
+existing beta.1 downloads are not patched or silently rewritten.
 
-## Included behavior
+## Checks and limits
 
-- MP3, WAV, AIFF, FLAC, AAC and ALAC with actual codec/container validation.
-- Full-duration spectral grades: HQ >=40% at or above 20 kHz; otherwise MQ
-  >=40% at or above 18 kHz; otherwise LQ. Bitrate is informational.
-- Folder spectral-grade score, grade filters, title/artist sorting and evidence.
-- Automatic batches, overall progress and Pause/Resume. Stop retains completed
-  batches; interrupted batches return no partial grades and can be selected again.
-- Dark/light appearance, saved Aa text sizing, smooth scrolling and tidy long-title display.
-- Local analysis that preserves audio, names, tags, artwork and DJ collections.
+The release gate runs the full application suite, canonical self-test, six-format
+source/frozen comparison, duration-integrity and pause/resume checks. A separate
+gate marks an owned copy of the exact candidate EXE as Internet-zone3, opens the
+actual native window/bridge, verifies clean shutdown, and checks that its executable
+bytes and marker stay unchanged. See the attached workflow evidence for the
+specific commit and artifact hashes. A controlled marker test does not qualify
+every browser, antivirus product, network drive or administrator policy.
 
-## Known limits and validation
-
-Processing uses CPU, without GPU acceleration. Inventory is bounded to 10,000
-candidates and 100,000 visited entries. Detailed evidence and JSON export cover
-the latest completed batch; the folder summary includes all completed batches
-in the current inventory. Closing the app ends processing; there is no saved
-cross-launch continuation. A graph may be omitted for an evidence-budget limit
-while full grading continues. Storage/cache limits are described in the
-[user guide](../../USER_GUIDE.md).
-
-Spectral coverage is not proof of listening quality, authenticity, original
-bitrate or a complete intended original recording. Noise can produce high
-frequency energy; a vintage master may have limited bandwidth and sound right.
-
-Beta.1: 87 application tests run successfully (one expected POSIX-name skip),
-six-format source/frozen comparisons and duration-integrity/pause cases pass.
-The downloaded package passes nine local synthetic/real HQ/MQ/LQ regressions,
-with exact measurements/bins/spectra and unchanged inputs. See the
-[native run](https://github.com/dj-dinu/resetlab-craft/actions/runs/38774791645)
-and [release notes](../../RELEASE_NOTES_0.1.0_BETA1.md). Historical broader edge
-harness results remain recorded in [local test results](../../LOCAL_TEST_RESULTS.md).
-
-User testing is positive. Clean-machine installation, native dialogs/drop,
-display-scale combinations, actual window shutdown and offline runtime traffic
-capture still need broader beta feedback. Apple silicon has its own unsigned
-[Mac beta](../macos/README.md); Intel Mac packages and Linux remain unqualified.
-This is not a stable release.
-
-The beta.1 worker/regression checks did not qualify a native Windows launch after
-browser download and Explorer extraction with the download marker retained. That
-gap caused the launch issue above. Future Windows package qualification must include
-both ordinary native startup and the marked-download path; passing scanner workers
-alone does not qualify the desktop bridge.
-
-## Feedback and reuse
-
-Use [GitHub Issues](https://github.com/dj-dinu/resetlab-craft/issues) for a
-reproduction, app version, Windows version, format and expected/actual result.
-Use a synthetic or shareable sample. Reports retain relative filenames; review
-them before sharing. Never post session links, private music or local diagnostics.
-For sensitive findings, arrange a private channel with the owner before sharing.
-
-Project-owned source is GPL-3.0-only; third-party components retain their own
-terms. A downloadable build must ship notices and matching source/build
-materials alongside it. See [reuse and branding](../../REUSE_AND_BRANDING.md),
-[dependency review](../../DEPENDENCY_REVIEW.md) and [privacy](../../PRIVACY.md).
+Use [GitHub Issues](https://github.com/dj-dinu/resetlab-craft/issues) for failures:
+include app/Windows version, action and error text. Do not share private music,
+session links or diagnostic credentials. [User guide](../../USER_GUIDE.md) ·
+[Privacy](../../PRIVACY.md) · [Installation](../../INSTALLATION.md).

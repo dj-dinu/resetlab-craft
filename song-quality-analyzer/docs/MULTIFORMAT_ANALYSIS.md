@@ -1,6 +1,6 @@
 # Local multi-format analysis
 
-Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 15 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
 
 The applied local patch extends the same canonical scanner. It never implements
 another grader, modifies source music, or assigns quality based on bitrate or
@@ -64,7 +64,7 @@ as an LQ result.
 At unusual rates such as 39,900 Hz, some of the 19.8–20.2 kHz band exists below
 the native Nyquist ceiling. The unchanged canonical metric also requires the
 20 kHz target itself not to exceed that ceiling. The 39,900 Hz fixture therefore
-has zero qualifying 20 kHz coverage and receives MQ from its measurable 18 kHz
+has zero qualifying 20 kHz coverage and receives MQ from its measurable 15 kHz
 signal; context describes the native limit without claiming a general fidelity
 conclusion.
 

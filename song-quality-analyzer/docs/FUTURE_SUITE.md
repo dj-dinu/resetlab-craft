@@ -1,14 +1,14 @@
 # ResetLab Craft suite: saved direction
 
-Updated October 12, 2026 from the user's instructions. This document preserves product decisions when work resumes. **The user selected ResetLab Craft as the parent brand and Spectracraft as its first tool.** Release/name-availability checks remain outstanding.
+Updated October 12, 2026 from the user's instructions. This document preserves product decisions when work resumes. **The user selected ResetLab Craft as the parent brand and Bandprism as its first tool.** Release/name-availability checks remain outstanding.
 
-The suite identity should be visible in the open-source project itself, starting with **Spectracraft**. A consistent app name, mark, colors, typography and README should make it feel like a crafted family of tools from the first GitHub release. The suite does not depend on a future commercial website.
+The suite identity should be visible in the open-source project itself, starting with **Bandprism**. A consistent app name, mark, colors, typography and README should make it feel like a crafted family of tools from the first GitHub release. The suite does not depend on a future commercial website.
 
 ## Decisions to preserve
 
 - Build useful, carefully designed tools for DJs, music producers and music collectors. Keep each tool understandable and lightweight.
 - Work locally first. Publish open-source source code and qualified platform releases on GitHub after the release checks pass. No public repository or release has been created yet.
-- The first app is Spectracraft, the existing Song Quality Analyzer. Its measurements retain the canonical full-spectrum HQ/MQ/LQ rules. Branding does not change grading or add a second quality engine.
+- The first app is Bandprism, the existing Song Quality Analyzer. Its measurements retain the canonical full-spectrum HQ/MQ/LQ rules. Branding does not change grading or add a second quality engine.
 - A common visual language includes light and dark themes, readable evidence, a consistent suite signature, and accessible scrolling and motion. Reduced-motion preferences and ordinary keyboard navigation remain supported.
 - Keep analyzer v1 focused on correct measurement, duration integrity, folder summaries, reliable batch work, report export and platform qualification. Future tools must not complicate its main workflow.
 - Preserve the future idea of a paid website and convenient automatic updates. **Do not design or implement the paid version now.** No pricing, subscriptions, accounts, checkout, paid gates or updater work belongs to the current scope.
@@ -21,13 +21,13 @@ The following names are working concepts, not shipped features.
 
 | App | Purpose | Current status |
 | --- | --- | --- |
-| **Spectracraft** | Inspect spectral coverage and track integrity, with folder summaries and evidence | Local alpha; release qualification continues |
+| **Bandprism** | Inspect spectral coverage and track integrity, with folder summaries and evidence | Local alpha; release qualification continues |
 | **Keycraft** | Musical-key and harmonic-mixing preparation, inspired by the use case of Mixed In Key | Future research and prototype |
 | **Stemcraft** | Prepare reusable separated audio and investigate supported rekordbox workflows | Future feasibility work; rekordbox cache injection is not promised |
 | **Setcraft** | Suggest the next song and actual transition points from a chosen starting track/section, with optional lyric wordplay | Future research and prototype |
 | **Cratecraft** | Organize files and metadata while preserving originals and DJ library data | Deferred; follows the user's established folder/title preferences |
 
-Use **ResetLab Craft** for the suite and **Spectracraft** for the first app in user-facing material. Keep stable technical paths until a deliberate migration; a display-name update does not require moving canonical analysis code or existing files. See [Brand](BRAND.md) for naming and visual rules and [Suite roadmap](SUITE_ROADMAP.md) for ordered milestones, research questions and release gates.
+Use **ResetLab Craft** for the suite and **Bandprism** for the first app in user-facing material. Keep stable technical paths until a deliberate migration; a display-name update does not require moving canonical analysis code or existing files. See [Brand](BRAND.md) for naming and visual rules and [Suite roadmap](SUITE_ROADMAP.md) for ordered milestones, research questions and release gates.
 
 ## Boundaries for future work
 
@@ -39,7 +39,7 @@ The song-suggestion idea needs more than a track-level key/BPM match: respect th
 
 ## Naming still to resolve
 
-The selected parent brand is **ResetLab Craft**, with the shared `-craft` product family. Check relevant software names, domain and social handles before publication; display-name approval does not establish availability.
+The selected parent brand is **ResetLab Craft**. Product names can share `-craft`, but the user relaxed that requirement; Bandprism is the analyzer. Check relevant software names, domain and social handles before publication; display-name approval does not establish availability.
 
 Earlier searches found existing products called Signaloom, ToneHarbor, Cratewell, Sonaloom and Wavewright, so those are poor first choices. Examples: [Signaloom](https://play.google.com/store/apps/details?id=com.maromav.realenginesound), [ToneHarbor](https://github.com/LyricTracers/ToneHarbor), [Cratewell](https://play.google.com/store/apps/details?id=com.cratewell.g82ec6227f0b48a32d374), [Sonaloom](https://sonaloom.com/), [Wavewright](https://store.steampowered.com/app/4149720/Wavewright/). These are preliminary conflict findings, not legal clearance.
 

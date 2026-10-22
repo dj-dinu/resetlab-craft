@@ -1,6 +1,6 @@
 # Canonical scanner integration
 
-Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 18 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
+Current rule: HQ requires >=40% at or above 20 kHz; MQ otherwise >=40% at or above 15 kHz; LQ otherwise. The earlier 30% / +/-200 Hz results below are historical; reanalyze old reports under the new rule.
 
 Historical migration record. Subsequent Windows real-track/independent-decoder validation passed; current multi-format and bundle status is recorded in [local test results](LOCAL_TEST_RESULTS.md). Pending statements below describe the initial patch stage, not the current complete qualification record. Native macOS and public-release qualification remain pending.
 
@@ -87,7 +87,7 @@ this code review and Windows validation cannot demonstrate that Mac runtime.
 
 All full-spectrum thresholds and HQ/MQ/LQ boundaries are unchanged: HQ requires
 at least 30% of the full decoded duration near 20 kHz; MQ otherwise requires
-at least 30% near 18 kHz; LQ otherwise. Encoded bitrate never determines a
+at least 30% near 15 kHz; LQ otherwise. Encoded bitrate never determines a
 grade. Quiet sections remain in the denominator.
 
 ## Before public distribution

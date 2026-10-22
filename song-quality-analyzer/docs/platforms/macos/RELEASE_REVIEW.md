@@ -32,7 +32,7 @@ No new Mac native execution is implied by rechecking an existing archive.
 
 1. **Bundled runtime refresh:** the inspected app contains Python 3.12.10,
    OpenSSL 3.0.16 and Expat 2.7.1, which lack later upstream security fixes.
-   No Spectracraft exploit was demonstrated; refresh and requalify the native
+   No Bandprism exploit was demonstrated; refresh and requalify the native
    bundle rather than describing this inventory as security-complete.
 2. **Downloaded-app and native interactions:** automation substitutes dialog
    selections. General volunteer success does not individually confirm Finder

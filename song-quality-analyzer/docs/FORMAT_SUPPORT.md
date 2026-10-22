@@ -26,7 +26,7 @@ The target format set is useful in DJ workflows, but successful analysis is not 
 
 ## One rule across formats
 
-Decoders supply native-rate PCM to the reviewed spectral measurement. They do not grade audio independently. HQ requires qualifying measurable signal at or above 20 kHz for at least 40% of the full decoded duration; otherwise MQ requires at least 40% at or above 18 kHz; otherwise LQ. All existing signal/activity thresholds, duration weighting and channel-power rules remain.
+Decoders supply native-rate PCM to the reviewed spectral measurement. They do not grade audio independently. HQ requires qualifying measurable signal at or above 20 kHz for at least 40% of the full decoded duration; otherwise MQ requires at least 40% at or above 15 kHz; otherwise LQ. All existing signal/activity thresholds, duration weighting and channel-power rules remain.
 
 Bitrate, container, codec, sample rate, bit depth and a lossless label are informational. FLAC/ALAC can preserve a previously band-limited or lossy source. Spectral coverage does not establish original bitrate, source authenticity, mastering quality or audible superiority.
 

@@ -18,8 +18,8 @@ sys.path.insert(0,str(PROJECT/'.localdeps'))
 import numpy as np
 from music_library_lab import BUNDLE_NAME
 
-EXPECTED_ENGINE_SHA='b1a7509f684641c6d23b381bea4853f4c87e94135227917a67bad9d9e5ccf0c8'
-CORE_KEYS=('duration_seconds','coverage_20khz','coverage_18khz','seconds_20khz','seconds_18khz','sample_rate','time_bins','quality_rule_version','coverage_threshold')
+EXPECTED_ENGINE_SHA='51fd1ea5c4da7af291b7cd1c00440fc3f2a57859dac4ed5c3896c40ba0a67da3'
+CORE_KEYS=('duration_seconds','coverage_20khz','coverage_15khz','seconds_20khz','seconds_15khz','sample_rate','time_bins','quality_rule_version','coverage_threshold')
 
 
 def digest(path:Path)->str:
@@ -50,7 +50,7 @@ def missing_engine_imports(internal:Path,scanner:Path)->list[str]:
 
 def main()->None:
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--bundle',type=Path,default=PROJECT/'dist'/BUNDLE_NAME)
+    parser.add_argument('--bundle',type=Path,default=PROJECT/'dist'/(BUNDLE_NAME+'.exe'))
     parser.add_argument('--scanner',type=Path,help='Canonical scanner; defaults to ignored local_settings.json scanner_path')
     parser.add_argument('--track',type=Path,action='append',default=[],help='Real-track regression input, repeat to cover HQ/MQ/LQ')
     parser.add_argument('--regression-report',type=Path,default=PROJECT/'.work'/'multiformat-mp3-validation.json',help='Ignored local regression report supplying real input paths when --track is omitted')
@@ -69,9 +69,18 @@ def main()->None:
         real_paths=[Path(item['path']) for item in regressions.get('mp3_regressions',regressions.get('records',[]))
             if item.get('quality') in ('HQ','MQ','LQ')]
         if not real_paths:parser.error('Local regression report contains no HQ/MQ/LQ inputs')
-    executable=args.bundle/(BUNDLE_NAME+'.exe');internal=args.bundle/'_internal'
-    bundled_engine=internal/'canonical'/'scan_quality.py';decoder=internal/'decoder'/'libmpg123-0.dll'
     work=PROJECT/'.work'/'frozen-worker-check';work.mkdir(exist_ok=True)
+    if args.bundle.is_file():
+        from PyInstaller.archive.readers import CArchiveReader
+        executable=args.bundle
+        internal=work/'verified-embedded-resources'
+        archive=CArchiveReader(str(executable))
+        for relative in ('canonical/scan_quality.py','decoder/libmpg123-0.dll','base_library.zip'):
+            target=internal/relative;target.parent.mkdir(parents=True,exist_ok=True)
+            target.write_bytes(archive.extract(relative.replace('/','\\')))
+    else:
+        executable=args.bundle/(BUNDLE_NAME+'.exe');internal=args.bundle/'_internal'
+    bundled_engine=internal/'canonical'/'scan_quality.py';decoder=internal/'decoder'/'libmpg123-0.dll'
     evidence=work/'evidence';evidence.mkdir(exist_ok=True)
     report={'passed':False,'bundle':str(args.bundle),'executable_sha256':digest(executable),
         'engine_sha256':digest(bundled_engine),'expected_engine_sha256':EXPECTED_ENGINE_SHA,
@@ -110,7 +119,7 @@ def main()->None:
             result,power=source_module['analyze_full_duration'](path,True)
             expected[str(path.resolve())]=(result,power)
         real_grades={source_module['spectrum_grade'](expected[str(path.resolve())][0]['coverage_20khz'],
-            expected[str(path.resolve())][0]['coverage_18khz']) for path in real_paths}
+            expected[str(path.resolve())][0]['coverage_15khz']) for path in real_paths}
         assert real_grades=={'HQ','MQ','LQ'},('Real-track regression inputs must cover HQ/MQ/LQ',real_grades)
 
         payload_path=work/'quality-results.json'
@@ -123,7 +132,7 @@ def main()->None:
             key=str(Path(record['path']).resolve());reference,power=expected[key]
             assert record['status']=='analyzed',record
             for field in CORE_KEYS:assert record[field]==reference[field],(key,field,'Frozen metrics differ')
-            grade=source_module['spectrum_grade'](reference['coverage_20khz'],reference['coverage_18khz'])
+            grade=source_module['spectrum_grade'](reference['coverage_20khz'],reference['coverage_15khz'])
             assert record['quality']==grade,(key,'Frozen grade differs')
             for field in ('codec','container','codec_profile','channels','bit_depth','mpeg_layer','native_frequency_ceiling_hz'):
                 assert record.get(field)==reference.get(field),(key,field,'Frozen metadata differs')
@@ -134,7 +143,7 @@ def main()->None:
             assert before[key]==digest(Path(key)),(key,'Source file changed')
             report['records'].append({'path':key,'codec':record['codec'],'container':record['container'],
                 'quality':grade,'duration_seconds':record['duration_seconds'],
-                'coverage_20khz':record['coverage_20khz'],'coverage_18khz':record['coverage_18khz'],
+                'coverage_20khz':record['coverage_20khz'],'coverage_15khz':record['coverage_15khz'],
                 'all_metrics_and_time_bins_exact':True,'spectrum_and_positions_exact':True,
                 'source_unchanged':True,'source_sha256':before[key]})
         report.update(passed=True,stdout_progress_records=stdout.count('PROGRESS '),

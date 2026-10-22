@@ -4,7 +4,7 @@ Use this for the actual packaged Windows app and each advertised Mac architectur
 
 ## Clean installation
 
-Use a normal user account on a machine without developer Python or DJ applications. Keep the complete Windows Spectracraft folder together. Record OS/architecture, app version, package hash, installed prerequisites and any launch/security messages. Report a block or failure; do not bypass security protections to obtain a pass.
+Use a normal user account on a machine without developer Python or DJ applications. Keep the complete Windows Bandprism folder together. Record OS/architecture, app version, package hash, installed prerequisites and any launch/security messages. Report a block or failure; do not bypass security protections to obtain a pass.
 
 ## Tasks to observe without coaching
 

@@ -119,8 +119,8 @@ class DesktopBridge:
         self._drop_document = document
         try:
             self._window.run_js("""
-                if (!window.__spectracraftDropBound) {
-                    window.__spectracraftDropBound = true;
+                if (!window.__bandprismDropBound) {
+                    window.__bandprismDropBound = true;
                     document.addEventListener('drop', function(event) {
                         event.preventDefault();
                         if (!event.dataTransfer || !event.dataTransfer.files.length) return;
@@ -178,7 +178,7 @@ class DesktopBridge:
             payload = json.dumps(sanitize_report(job["result"]), ensure_ascii=False, indent=2).encode("utf-8")
         selection = self._window.create_file_dialog(
             self._webview.FileDialog.SAVE,
-            save_filename="spectracraft-report.json",
+            save_filename="bandprism-report.json",
             file_types=("JSON report (*.json)",),
         )
         if not selection:
@@ -198,7 +198,7 @@ class DesktopBridge:
         return {"saved": True, "path": str(target)}
 
 
-def main():
+def main(on_loaded=None):
     parser = argparse.ArgumentParser(description=APP_NAME + " desktop alpha")
     parser.add_argument("--scanner")
     parser.add_argument("--decoder")
@@ -221,6 +221,8 @@ def main():
             from .cocoa_bridge import install_cocoa_bridge
             restore_cocoa = install_cocoa_bridge(window)
         window.events.loaded += bridge._bind_drop
+        if on_loaded is not None:
+            window.events.loaded += lambda: on_loaded(window, session, bridge)
         # Windows uses the installed Edge WebView2 runtime; macOS uses WKWebView.
         renderer = "edgechromium" if os.name == "nt" else None
         webview.start(gui=renderer, debug=args.debug, private_mode=True)

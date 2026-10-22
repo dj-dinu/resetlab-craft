@@ -105,7 +105,8 @@ def main():
         "mpg123: https://www.mpg123.de/ ; PyAV: https://pyav.basswood.io/ ; FFmpeg: https://ffmpeg.org/legal.html\n",
         encoding="utf-8",
     )
-    manifest = {"app": APP_NAME, "suite": SUITE_NAME, "tool": TOOL_NAME, "version": __version__, "purpose": "local desktop alpha",
+    manifest = {"app": APP_NAME, "suite": SUITE_NAME, "tool": TOOL_NAME, "version": __version__, "purpose": "local desktop candidate",
+                "packaging": "onedir" if mac else "onefile",
                 "public_release_qualified": False, "built_at_utc": datetime.now(timezone.utc).isoformat(),
                 "source_license": {"spdx": "GPL-3.0-only", "file": "LICENSE", "sha256": sha256(PROJECT / "LICENSE"),
                                    "scope": "project-owned source; third parties retain their own terms"},
@@ -151,6 +152,15 @@ def main():
                   ["webview.platforms.winforms", "webview.platforms.edgechromium", "clr_loader", "pythonnet", "clr"])
     hooks = [str(PROJECT / "tools" / "macos_ui_runtime_hook.py")] if args.ui_test_driver else []
     mac_options = f", target_arch={platform.machine()!r}, codesign_identity=None" if mac else ""
+    windows_exe = (
+        f"exe = EXE(pyz, a.scripts, a.binaries, a.datas, [], name={BUNDLE_NAME!r},\n"
+        f"    debug=False, strip=False, upx=False, console=False, icon={str(icon)!r})\n"
+    )
+    mac_exe = (
+        f"exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name={BUNDLE_NAME!r},\n"
+        f"    debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=False, icon={str(icon)!r}{mac_options})\n"
+        f"bundle = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name={BUNDLE_NAME!r})\n"
+    )
     spec.write_text(
         "from PyInstaller.utils.hooks import collect_submodules, collect_data_files\n"
         f"a = Analysis([{str(PROJECT / 'run_desktop.py')!r}], pathex={[str(PROJECT), str(DEPENDENCIES)]!r},\n"
@@ -160,13 +170,11 @@ def main():
         "    excludes=['tkinter','PyQt5','PyQt6','PySide2','PySide6','matplotlib','pandas','scipy','torch'],\n"
         f"    noarchive=False, optimize={0 if args.ui_test_driver else 1})\n"
         "pyz = PYZ(a.pure)\n"
-        f"exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name={BUNDLE_NAME!r},\n"
-        f"    debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=False, icon={str(icon)!r}{mac_options})\n"
-        f"bundle = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name={BUNDLE_NAME!r})\n"
+        + (mac_exe if mac else windows_exe)
         + (f"app = BUNDLE(bundle, name={BUNDLE_NAME + '.app'!r}, icon={str(icon)!r},\n"
-           f"    bundle_identifier='com.resetlabcraft.spectracraft', version={__version__.split('-')[0]!r},\n"
+           f"    bundle_identifier='com.resetlabcraft.bandprism', version={__version__.split('-')[0]!r},\n"
            "    info_plist={'NSPrincipalClass': 'NSApplication', 'NSHighResolutionCapable': True,\n"
-           f"                'CFBundleVersion': {BUILD_NUMBER!r}, 'SpectracraftVersion': {__version__!r},\n"
+           f"                'CFBundleVersion': {BUILD_NUMBER!r}, 'BandprismVersion': {__version__!r},\n"
            "                'NSAppleScriptEnabled': False, 'LSMinimumSystemVersion': '15.0'})\n" if mac else ""),
         encoding="utf-8",
     )
@@ -176,10 +184,11 @@ def main():
     import PyInstaller.__main__
     PyInstaller.__main__.run([str(spec), "--noconfirm", "--distpath", str(dist_dir),
                              "--workpath", str(work / "pyinstaller-work")])
-    bundle = dist_dir / (BUNDLE_NAME + ".app" if mac else BUNDLE_NAME)
-    manifest["bundle_bytes"] = sum(path.stat().st_size for path in bundle.rglob("*") if path.is_file())
+    bundle = dist_dir / (BUNDLE_NAME + ".app" if mac else BUNDLE_NAME + ".exe")
+    manifest["bundle_bytes"] = (sum(path.stat().st_size for path in bundle.rglob("*") if path.is_file())
+                                if mac else bundle.stat().st_size)
     (work / "completed-build.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    executable = bundle / "Contents" / "MacOS" / BUNDLE_NAME if mac else bundle / (BUNDLE_NAME + ".exe")
+    executable = bundle / "Contents" / "MacOS" / BUNDLE_NAME if mac else bundle
     print(json.dumps({"built": True, "executable": str(executable),
                       "bundle_bytes": manifest["bundle_bytes"], "engine_sha256": manifest["engine"]["sha256"]}))
 

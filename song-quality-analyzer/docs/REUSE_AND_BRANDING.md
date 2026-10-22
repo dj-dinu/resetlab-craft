@@ -1,6 +1,6 @@
 # Reuse and branding
 
-Selected October 12, 2026: others may use and build on Spectracraft under conditions. Project-owned source is licensed under **GNU GPL version 3 only**, SPDX identifier `GPL-3.0-only`. The complete, unmodified text is in [LICENSE](../LICENSE).
+Selected October 12, 2026: others may use and build on Bandprism under conditions. Project-owned source is licensed under **GNU GPL version 3 only**, SPDX identifier `GPL-3.0-only`. The complete, unmodified text is in [LICENSE](../LICENSE).
 
 ## Code reuse
 
@@ -12,11 +12,11 @@ Ordinary findings reports and the user's music/metadata are not relicensed merel
 
 ## Brand and origin
 
-ResetLab Craft and Spectracraft identify this project's official identity. This project does not grant rights under trademark law to use those identities as another product's branding, and it does not claim they are registered trademarks. Name/handle clearance and any registration remain separate release work.
+ResetLab Craft and Bandprism identify this project's official identity. This project does not grant rights under trademark law to use those identities as another product's branding, and it does not claim they are registered trademarks. Name/handle clearance and any registration remain separate release work.
 
 - Accurately describe an unmodified redistribution, its original project and its distributor.
 - Clearly identify modified builds as modified. Use a distinct product/distributor identity and do not imply that ResetLab Craft authored, approved or supports your fork.
-- References such as “based on Spectracraft by ResetLab Craft” may describe origin accurately. Preserve applicable author/license notices without presenting a fork as an official release.
+- References such as “based on Bandprism by ResetLab Craft” may describe origin accurately. Preserve applicable author/license notices without presenting a fork as an official release.
 - Code and source assets supplied under GPL remain subject to those rights; this branding policy does not revoke GPL permissions or impose a separate copyright restriction on GPL-covered logo/source files.
 
 Misrepresentation and trademark rights are separate from software-copying permission. Final ownership, dependency and brand terms still need release review; no exclusive trademark right is established by this policy alone.

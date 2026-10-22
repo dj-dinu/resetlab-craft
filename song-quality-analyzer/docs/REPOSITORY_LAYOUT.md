@@ -1,6 +1,6 @@
 # Repository layout
 
-ResetLab Craft is the suite. Spectracraft is the implemented product in
+ResetLab Craft is the suite. Bandprism is the implemented product in
 `song-quality-analyzer/`; other tool names remain concepts.
 
 ```text
@@ -10,7 +10,7 @@ resetlab-craft/
 ├── .github/workflows/            Native qualification workflows
 ├── research/                     Product research; no private test data
 └── song-quality-analyzer/
-    ├── README.md                 Spectracraft entry point
+    ├── README.md                 Bandprism entry point
     ├── run_desktop.py            Native desktop launcher and frozen worker
     ├── run_local.py              Developer browser launcher
     ├── Start Desktop Windows.cmd
@@ -50,8 +50,8 @@ These are local working directories, not source folders or public downloads:
 | `song-quality-analyzer/local_settings.json` | Machine-specific scanner/decoder paths | Ignored |
 
 Keep installed Windows and Mac archives as GitHub Release assets, with names
-such as `Spectracraft-<version>-windows-x64.zip` and
-`Spectracraft-<version>-macos-arm64.zip`. Supply matching source, dependency
+such as `Bandprism-<version>-windows-x64.zip` and
+`Bandprism-<version>-macos-arm64.zip`. Supply matching source, dependency
 sources/notices and checksums beside each published version. Those are naming
 conventions for releases, not claims that every package is already available.
 

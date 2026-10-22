@@ -12,8 +12,8 @@ import time
 from .inventory import linked
 
 JOB_ID = re.compile(r'^[0-9a-f]{32}$')
-MARKER = '.spectracraft-cache.json'
-OWNER = 'Spectracraft generated analysis cache v1'
+MARKER = '.bandprism-cache.json'
+OWNER = 'Bandprism generated analysis cache v1'
 KEEP_FINISHED = 3
 
 

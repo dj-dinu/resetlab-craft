@@ -29,7 +29,7 @@ def main():
     checks = []
     for old in expected:
         r = lookup[str(Path(old["path"]).resolve()).casefold()]
-        for key in ("quality", "coverage_20khz", "coverage_18khz", "duration_seconds"):
+        for key in ("quality", "coverage_20khz", "coverage_15khz", "duration_seconds"):
             assert r[key] == old[key], (key, r[key], old[key])
         assert r["source_sha256"] == old["source_sha256"]
         assert r["spectrogram"] and r["time_bins"]

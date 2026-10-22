@@ -1,6 +1,6 @@
 # ResetLab Craft suite roadmap
 
-Saved October 12, 2026. **The user selected ResetLab Craft as the parent brand.** Only Spectracraft exists as a local alpha. The other tools below are future concepts; this document does not implement or promise an integration.
+Saved October 12, 2026. **The user selected ResetLab Craft as the parent brand.** Only Bandprism exists as a local alpha. The other tools below are future concepts; this document does not implement or promise an integration.
 
 The goal is a family of small, well-crafted desktop tools for DJs and producers. Share a visual language and reusable infrastructure where useful, but keep each tool's purpose clear. Develop locally, validate on Windows and macOS, and qualify each release before publishing its open-source project on GitHub.
 
@@ -8,7 +8,7 @@ The goal is a family of small, well-crafted desktop tools for DJs and producers.
 
 | Stage | Outcome | Gate before the next stage |
 | --- | --- | --- |
-| **1. Spectracraft** | Branded quality analyzer with reliable folder summaries, filters, duration warnings and evidence | Native desktop/clean-install qualification, macOS testing, cache/resource handling, dependency licensing and small user beta |
+| **1. Bandprism** | Branded quality analyzer with reliable folder summaries, filters, duration warnings and evidence | Native desktop/clean-install qualification, macOS testing, cache/resource handling, dependency licensing and small user beta |
 | **2. Keycraft** | A local musical-key and harmonic-preparation prototype | Labeled evaluation set, confidence/ambiguity reporting, tempo/key-change handling and safe export |
 | **3. Stemcraft feasibility** | Measured evidence of where persistent separation would save work, and a supported reuse path | Verify target rekordbox versions; evaluate model, storage, timing and any supported interoperability |
 | **4. Setcraft** | Explainable next-track suggestions tied to selected sections and transition points | A useful non-AI baseline, DJ evaluation of real transitions, confidence and optional lyric timing checks |
@@ -16,7 +16,7 @@ The goal is a family of small, well-crafted desktop tools for DJs and producers.
 
 Stemcraft research may run alongside Keycraft research when a small experiment can settle feasibility. Setcraft depends on dependable key/tempo/section information, so begin with an explainable candidate ranking before adding a larger model. The paid website and automatic updates stay outside this roadmap's implementation scope.
 
-## Spectracraft: first public tool
+## Bandprism: first public tool
 
 Finish and qualify the current app before expanding it. It stays focused on spectral evidence and integrity, with the user's existing canonical engine and full-duration grading rule. Branding, themes and scrolling are presentation improvements. They must not change measurement or weaken source preservation.
 
@@ -44,7 +44,7 @@ The initial independent prototype can separate user-owned local audio into align
 
 That cache would serve our own preview/export workflow. It will only save work inside rekordbox if a **supported and tested** workflow accepts the outputs. Ordinary exported stem audio is not automatically equivalent to rekordbox's deck separation cache. Do not inject cache files, patch the application or modify proprietary databases to promise a seamless feature. Preserve cues, beatgrids, playlists and Collection entries; test any supported library operation on disposable fixtures first.
 
-Useful evaluation includes separation quality, vocal/instrument bleed, transient damage, reconstruction and sample alignment, CPU/GPU memory, model-download size, processing time and disk use. Local stems are a substantially heavier tool than Spectracraft and should be optional. Check model and dependency licenses before distribution. Streaming/DRM sources require separate supported capabilities and permissions; they are not assumed to work.
+Useful evaluation includes separation quality, vocal/instrument bleed, transient damage, reconstruction and sample alignment, CPU/GPU memory, model-download size, processing time and disk use. Local stems are a substantially heavier tool than Bandprism and should be optional. Check model and dependency licenses before distribution. Streaming/DRM sources require separate supported capabilities and permissions; they are not assumed to work.
 
 ## Setcraft: the next song and where to enter it
 
@@ -72,7 +72,7 @@ Every organization plan needs preview, original metadata and paths in a private 
 
 ## Shared foundation and release discipline
 
-Reuse a small local desktop shell, theme and motion tokens, a source-hash scheme, cancellation, report conventions and cache controls when they help. Keep heavy key, stem and language models out of Spectracraft's default download. Version model results and explain when a cached measurement came from an older model.
+Reuse a small local desktop shell, theme and motion tokens, a source-hash scheme, cancellation, report conventions and cache controls when they help. Keep heavy key, stem and language models out of Bandprism's default download. Version model results and explain when a cached measurement came from an older model.
 
 For each tool, qualify supported file formats, Windows/macOS architectures, native installation and resource limits; review dependency/model licenses; and separate measured behavior from prototypes in release notes. Use GitHub for public source, issues and qualified releases. Final repository layout and open-source license remain decisions before publication.
 

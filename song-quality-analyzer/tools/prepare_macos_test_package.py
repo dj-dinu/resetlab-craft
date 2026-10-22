@@ -41,7 +41,7 @@ def sha(path):
 def download(url, destination, expected=None):
     if expected and destination.is_file() and sha(destination) == expected:
         return dict(file=destination.name, url=url, sha256=expected, upstream_hash_verified=True)
-    request = Request(url, headers={'User-Agent': 'Spectracraft-Mac-qualification'})
+    request = Request(url, headers={'User-Agent': 'Bandprism-Mac-qualification'})
     with urlopen(request, timeout=60) as source, destination.open('wb') as output:
         total = 0
         while block := source.read(1024 * 1024):
@@ -123,7 +123,7 @@ def main():
         assert source.is_file(), 'Missing installed Homebrew recipe: ' + filename
         shutil.copyfile(source, homebrew / source.name)
     (homebrew / 'formula.json').write_text(json.dumps(formula, indent=2))
-    source_zip = target / 'Spectracraft-matching-project-source.zip'
+    source_zip = target / 'Bandprism-matching-project-source.zip'
     subprocess.run(['git', 'archive', '--format=zip', '--output=' + str(source_zip), 'HEAD'],
                    cwd=PROJECT.parent, check=True)
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=PROJECT.parent, text=True).strip()
@@ -137,7 +137,7 @@ def main():
         elif kit_name == 'REUSE_AND_BRANDING.md':
             content = content.replace('](../LICENSE)', '](LICENSE)')
         (target / kit_name).write_text(content, encoding='utf-8')
-    shutil.copyfile(work / 'mac-package/Spectracraft-apple-silicon-test.zip', target / 'Spectracraft-apple-silicon-test.zip')
+    shutil.copyfile(work / 'mac-package/Bandprism-apple-silicon-test.zip', target / 'Bandprism-apple-silicon-test.zip')
     shutil.copyfile(work / 'mac-package/build-manifest.json', target / 'build-manifest.json')
     shutil.copyfile(work / 'release-dependency-review.json', target / 'dependency-inventory.json')
     with zipfile.ZipFile(target / 'Synthetic-audio-tests.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
@@ -147,8 +147,8 @@ def main():
                 archive.write(path, path.relative_to(fixtures).as_posix())
     (target / 'source-receipts.json').write_text(json.dumps(receipts, indent=2) + '\n')
     (target / 'README.txt').write_text(
-        'Spectracraft Apple silicon volunteer test — macOS 15 or later\n'
-        'Extract Spectracraft-apple-silicon-test.zip with Finder, then open Spectracraft.app.\n'
+        'Bandprism Apple silicon volunteer test — macOS 15 or later\n'
+        'Extract Bandprism-apple-silicon-test.zip with Finder, then open Bandprism.app.\n'
         'Python and Homebrew are not needed to run the app. Use MACOS_VOLUNTEER_TEST.md.\n'
         'Synthetic-audio-tests.zip supplies owned six-format, 103-track and pause/close fixtures for analysis.\n'
         'Ad-hoc signed, not notarized. Record first-launch security prompts; do not disable Gatekeeper globally.\n'
@@ -168,7 +168,7 @@ def main():
             sums.append(sha(path) + '  ' + path.relative_to(target).as_posix())
     (target / 'SHA256SUMS.txt').write_text('\n'.join(sums) + '\n')
     print(json.dumps({'prepared': True, 'source_commit': commit, 'sources': len(receipts),
-                      'app_sha256': sha(target / 'Spectracraft-apple-silicon-test.zip'), 'release_published': False}))
+                      'app_sha256': sha(target / 'Bandprism-apple-silicon-test.zip'), 'release_published': False}))
 
 
 if __name__ == '__main__':
